@@ -1,0 +1,63 @@
+basePath: /api
+definitions:
+  auth.SignupRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    type: object
+  auth.SignupResponse:
+    properties:
+      message:
+        example: User created successfully
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A chat server API built with Go
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Chat Server API
+  version: "1.0"
+paths:
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: Signup credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.SignupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.SignupResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sign up a new user
+      tags:
+      - auth
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
