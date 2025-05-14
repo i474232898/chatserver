@@ -1,9 +1,13 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
-	"github.com/go-playground/validator/v10"
 	"net/http"
+
+	"github.com/go-playground/validator/v10"
+
+	"github.com/i474232898/chatserver/pkg/db"
 )
 
 type SignupRequest struct {
@@ -51,6 +55,15 @@ func SignupH(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(errors)
 		return
 	}
+
+	// conn, err := db.Connect()
+	// if err != nil {
+	// 	http.Error(w, "Internal Error", http.StatusInternalServerError)
+	// }
+	// var newUserID int
+	// insertQuery := `insert into "user" ("email", "password") values ($1, $2)`
+
+	//  = conn.Query(context.Background(), insertQuery, req.Email, req.Password)
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(SignupResponse{
