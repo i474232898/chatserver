@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -16,7 +17,7 @@ type SignupRequest struct {
 }
 
 type SignupResponse struct {
-	Message string `json:"message" example:"Signup successful"`
+	UserId int `json:"userId" example:1`
 }
 type ErrorResponse struct {
 	Field   string `json:"field"`
@@ -56,17 +57,25 @@ func SignupH(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// conn, err := db.Connect()
-	// if err != nil {
-	// 	http.Error(w, "Internal Error", http.StatusInternalServerError)
-	// }
-	// var newUserID int
-	// insertQuery := `insert into "user" ("email", "password") values ($1, $2)`
+	pool, err := db.Connect()
+	if err != nil {
+		fmt.Println(">>>", err)
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		return
+	}
+	var newUserID int
+	insertQuery := `insert into "users" ("email", "password") values ($1, $2) returning user_id`
 
-	//  = conn.Query(context.Background(), insertQuery, req.Email, req.Password)
+	err = pool.QueryRow(context.Background(), insertQuery, req.Email, req.Password).Scan(&newUserID)
+	if err != nil {
+		//todo: check if duplicate
+		fmt.Println(">>11>", err)
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(SignupResponse{
-		Message: "Signup successful",
+		UserId: newUserID,
 	})
 }
