@@ -25,7 +25,7 @@ type ErrorResponse struct {
 }
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
-
+// 
 // @Summary      Sign up a new user
 // @Description  Create a new user account
 // @Tags         auth
