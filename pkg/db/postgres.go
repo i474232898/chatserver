@@ -6,30 +6,34 @@ import (
 	"os"
 	"sync"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
-	once sync.Once
-	conn *pgx.Conn
-	err  error
+	pool    *pgxpool.Pool
+	once    sync.Once
+	poolErr error
 )
 
-func Connect() (*pgx.Conn, error) {
+func Connect() (*pgxpool.Pool, error) {
 	once.Do(func() {
-		conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
-
+		var err error
+		pool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+			poolErr = err
+			return
 		}
 
 		var result int
-		err = conn.QueryRow(context.Background(), "SELECT 1").Scan(&result)
+		err = pool.QueryRow(context.Background(), "SELECT 1").Scan(&result)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Connection test failed: %v\n", err)
-			os.Exit(1)
+			pool.Close()
+			poolErr = err
+			return
 		}
 	})
 
-	return conn, err
+	return pool, poolErr
 }
