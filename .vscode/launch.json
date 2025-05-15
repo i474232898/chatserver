@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "launch<",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/chatserver/main.go",
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "PORT": "8080",
+        "GO_ENV": "development"
+      },
+      "args": [],
+      "buildFlags": "",
+      "preLaunchTask": "",
+      "internalConsoleOptions": "openOnSessionStart"
+    }
+  ]
+}
