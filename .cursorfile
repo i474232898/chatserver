@@ -1,0 +1,8 @@
+{
+  "strict": true,
+  "suggestions": false,
+  "autoComplete": false,
+  "autoFix": false,
+  "commentedCode": false,
+  "annotations": false
+}
