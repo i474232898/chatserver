@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/crypto/bcrypt"
+	"log/slog"
 
 	"github.com/i474232898/chatserver/pkg/db"
 )
@@ -17,7 +19,7 @@ type SignupRequest struct {
 }
 
 type SignupResponse struct {
-	UserId int `json:"userId" example:1`
+	UserId int `json:"userId" example:"1"`
 }
 type ErrorResponse struct {
 	Field   string `json:"field"`
@@ -59,14 +61,18 @@ func SignupH(w http.ResponseWriter, r *http.Request) {
 
 	pool, err := db.Connect()
 	if err != nil {
-		fmt.Println(">>>", err)
+		slog.Error("DB connection error", "error", err.Error())
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 		return
+	}
+	password, err := HashPassword(req.Password)
+	if err != nil {
+		slog.Error("Password hashing failed", "error", err.Error())
 	}
 	var newUserID int
 	insertQuery := `insert into "users" ("email", "password") values ($1, $2) returning user_id`
 
-	err = pool.QueryRow(context.Background(), insertQuery, req.Email, req.Password).Scan(&newUserID)
+	err = pool.QueryRow(context.Background(), insertQuery, req.Email, password).Scan(&newUserID)
 	if err != nil {
 		//todo: check if duplicate
 		fmt.Println(">>11>", err)
@@ -78,4 +84,15 @@ func SignupH(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(SignupResponse{
 		UserId: newUserID,
 	})
+}
+
+func HashPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+
+	if err != nil {
+		slog.Error("Hashing failed", "error", err.Error())
+		return "", err
+	}
+
+	return string(hashedPassword), nil
 }
