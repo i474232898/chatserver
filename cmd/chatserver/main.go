@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/i474232898/chatserver/docs"
@@ -27,11 +26,8 @@ import (
 
 // @securityDefinitions.basic  BasicAuth
 
-var p = fmt.Println
-
 func main() {
 	err := godotenv.Load()
-
 	if err != nil {
 		panic("incomplete environment vars")
 	}
@@ -44,6 +40,10 @@ func main() {
 	docs.SwaggerInfo.BasePath = "/api"
 	docs.SwaggerInfo.Schemes = []string{"http"}
 
-	db.Connect()
+	err = db.Connect()
+	if err != nil {
+		panic("Can't connect to db")
+	}
+
 	server.Start(os.Getenv("PORT"))
 }

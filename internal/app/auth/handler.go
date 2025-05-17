@@ -59,12 +59,8 @@ func SignupH(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pool, err := db.Connect()
-	if err != nil {
-		slog.Error("DB connection error", "error", err.Error())
-		http.Error(w, "Internal Error", http.StatusInternalServerError)
-		return
-	}
+	pool := db.GetPool()
+
 	password, err := HashPassword(req.Password)
 	if err != nil {
 		slog.Error("Password hashing failed", "error", err.Error())
