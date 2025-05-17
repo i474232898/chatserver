@@ -15,7 +15,7 @@ var (
 	poolErr error
 )
 
-func Connect() (*pgxpool.Pool, error) {
+func Connect() error {
 	once.Do(func() {
 		var err error
 		pool, err = pgxpool.New(context.Background(), os.Getenv("DATABASE_URL"))
@@ -24,16 +24,11 @@ func Connect() (*pgxpool.Pool, error) {
 			poolErr = err
 			return
 		}
-
-		var result int
-		err = pool.QueryRow(context.Background(), "SELECT 1").Scan(&result)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Connection test failed: %v\n", err)
-			pool.Close()
-			poolErr = err
-			return
-		}
 	})
 
-	return pool, poolErr
+	return poolErr
+}
+
+func GetPool() *pgxpool.Pool {
+	return pool
 }
