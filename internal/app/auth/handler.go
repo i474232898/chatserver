@@ -28,15 +28,6 @@ type ErrorResponse struct {
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
-// @Summary      Sign up a new user
-// @Description  Create a new user account
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        request body SignupRequest true "Signup credentials"
-// @Success      201 {object} SignupResponse
-// @Failure      400 {object} map[string]string
-// @Router       /auth/signup [post]
 func SignupH(w http.ResponseWriter, r *http.Request) {
 	var req SignupRequest
 

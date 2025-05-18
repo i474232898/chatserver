@@ -1,7 +1,7 @@
 package server
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -9,7 +9,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/i474232898/chatserver/internal/app/auth"
-	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func Start(port string) {
@@ -32,24 +31,12 @@ func Start(port string) {
 		MaxAge:           300,
 	}))
 
-	// Swagger documentation
-	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("/swagger/doc.json"), // The url pointing to API definition
-	))
-
-	// API routes
-	r.Route("/api", func(r chi.Router) {
-		// Auth routes
-		r.Route("/auth", func(r chi.Router) {
-			r.Post("/signup", auth.SignupH)
-			// Add more auth routes here as needed
-			// r.Post("/login", auth.LoginH)
-			// r.Post("/logout", auth.LogoutH)
-		})
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/signup", auth.SignupH)
 	})
 
-	log.Printf("Starting server on :%s", port)
+	slog.Info("Starting server on :" + port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+		slog.Error("Server failed to start: " + err.Error())
 	}
 }
