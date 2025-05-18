@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -57,9 +56,9 @@ func SignupH(w http.ResponseWriter, r *http.Request) {
 		slog.Error("Password hashing failed", "error", err.Error())
 	}
 	var newUserID int
-	insertQuery := `insert into "users" ("email", "password") values ($1, $2) returning user_id`
+	insertQuery := `insert into "users" ("email", "password") values (?, ?) returning user_id`
 
-	err = pool.QueryRow(context.Background(), insertQuery, req.Email, password).Scan(&newUserID)
+	pool.Raw(insertQuery, req.Email, password).Scan(&newUserID)
 	if err != nil {
 		//todo: check if duplicate
 		fmt.Println(">>11>", err)
