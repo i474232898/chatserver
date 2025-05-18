@@ -1,25 +1,28 @@
 package db
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"sync"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/i474232898/chatserver/configs"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var (
-	pool    *pgxpool.Pool
+	pool    *gorm.DB
 	once    sync.Once
 	poolErr error
 )
 
 func Connect(cfg *configs.AppConfigs) error {
 	once.Do(func() {
-		var err error
-		pool, err = pgxpool.New(context.Background(), cfg.DatabaseURL)
+		db, err := gorm.Open(postgres.New(postgres.Config{
+			DSN: "user=postgres host=localhost password=postgres dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Shanghai",
+		}), &gorm.Config{})
+		pool = db
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 			poolErr = err
@@ -30,6 +33,6 @@ func Connect(cfg *configs.AppConfigs) error {
 	return poolErr
 }
 
-func GetPool() *pgxpool.Pool {
+func GetPool() *gorm.DB {
 	return pool
 }
