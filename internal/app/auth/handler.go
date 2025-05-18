@@ -2,12 +2,12 @@ package auth
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+
+	"log/slog"
 
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/crypto/bcrypt"
-	"log/slog"
 
 	"github.com/i474232898/chatserver/pkg/db"
 )
@@ -30,10 +30,9 @@ var validate = validator.New(validator.WithRequiredStructEnabled())
 func SignupH(w http.ResponseWriter, r *http.Request) {
 	var req SignupRequest
 
-	w.Header().Set("Content-Type", "application/json")
-
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Incorrect body", http.StatusBadRequest)
+    w.Header().Set("Content-Type", "application/json")
 		return
 	}
 
@@ -58,11 +57,12 @@ func SignupH(w http.ResponseWriter, r *http.Request) {
 	var newUserID int
 	insertQuery := `insert into "users" ("email", "password") values (?, ?) returning user_id`
 
-	pool.Raw(insertQuery, req.Email, password).Scan(&newUserID)
-	if err != nil {
+	result := pool.Raw(insertQuery, req.Email, password).Scan(&newUserID)
+	if result.Error != nil {
 		//todo: check if duplicate
-		fmt.Println(">>11>", err)
+		slog.Error("Failed to insert user", "error", result.Error.Error())
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
+    w.Header().Set("Content-Type", "application/json")
 		return
 	}
 

@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"os"
+	"log/slog"
 	"sync"
 
 	"github.com/i474232898/chatserver/configs"
@@ -20,11 +20,18 @@ var (
 func Connect(cfg *configs.AppConfigs) error {
 	once.Do(func() {
 		db, err := gorm.Open(postgres.New(postgres.Config{
-			DSN: "user=postgres host=localhost password=postgres dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Shanghai",
+			DSN: fmt.Sprintf(
+				"user=%s host=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
+				cfg.DB.User,
+				cfg.DB.Host,
+				cfg.DB.Password,
+				cfg.DB.Name,
+				cfg.DB.Port,
+			),
 		}), &gorm.Config{})
 		pool = db
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+			slog.Error("Unable to connect to database: %v", err)
 			poolErr = err
 			return
 		}
