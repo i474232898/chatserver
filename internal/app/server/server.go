@@ -11,7 +11,6 @@ import (
 	"github.com/i474232898/chatserver/internal/app/handlers"
 	"github.com/i474232898/chatserver/internal/app/repositories"
 	"github.com/i474232898/chatserver/internal/app/services"
-	"github.com/i474232898/chatserver/pkg/db"
 )
 
 type Server struct {
@@ -23,7 +22,7 @@ func NewServer() Server {
 }
 
 func (s *Server) setupRoutes() {
-	db := db.GetPool()
+	db := repositories.GetPool()
 
 	userRepository := repositories.NewUserRepository(db)
 	authService := services.NewAuthService(userRepository)
