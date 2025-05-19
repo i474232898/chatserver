@@ -13,5 +13,6 @@ func main() {
 		panic("Can't connect to db")
 	}
 
-	server.Start(cnf.Port)
+	srvr := server.NewServer()
+	srvr.Start(cnf.Port)
 }
