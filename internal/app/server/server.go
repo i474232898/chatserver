@@ -11,6 +11,7 @@ import (
 	"github.com/i474232898/chatserver/internal/app/handlers"
 	"github.com/i474232898/chatserver/internal/app/repositories"
 	"github.com/i474232898/chatserver/internal/app/services"
+	"github.com/swaggest/swgui/v5emb"
 )
 
 type Server struct {
@@ -31,6 +32,15 @@ func (s *Server) setupRoutes() {
 	s.router.Route("/auth", func(r chi.Router) {
 		r.Post("/signup", authHandler.Signup)
 	})
+
+	s.router.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "api/openapi.yaml")
+	})
+	s.router.Mount("/docs", v5emb.NewHandler(
+		"Chat Server API Docs",
+		"/openapi.yaml",
+		"/docs",
+	))
 }
 
 func (s *Server) setupMiddlewares() {
