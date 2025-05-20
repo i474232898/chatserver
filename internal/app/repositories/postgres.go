@@ -17,9 +17,9 @@ var (
 	poolErr error
 )
 
-func Connect(cfg *configs.AppConfigs) error {
+func GetPool(cfg *configs.AppConfigs) (*gorm.DB, error) {
 	once.Do(func() {
-		db, err := gorm.Open(postgres.New(postgres.Config{
+		pool, poolErr = gorm.Open(postgres.New(postgres.Config{
 			DSN: fmt.Sprintf(
 				"user=%s host=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
 				cfg.DB.User,
@@ -29,17 +29,11 @@ func Connect(cfg *configs.AppConfigs) error {
 				cfg.DB.Port,
 			),
 		}), &gorm.Config{})
-		pool = db
-		if err != nil {
-			slog.Error("Unable to connect to database: %v", err)
-			poolErr = err
+		if poolErr != nil {
+			slog.Error("Unable to connect to database: %v", poolErr)
 			return
 		}
 	})
 
-	return poolErr
-}
-
-func GetPool() *gorm.DB {
-	return pool
+	return pool, poolErr
 }

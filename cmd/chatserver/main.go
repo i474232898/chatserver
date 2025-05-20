@@ -7,12 +7,12 @@ import (
 )
 
 func main() {
-	cnf := configs.New()
-	err := repositories.Connect(cnf)
+	cfg := configs.New()
+	_, err := repositories.GetPool(cfg)
 	if err != nil {
 		panic("Can't connect to db")
 	}
 
 	srvr := server.NewServer()
-	srvr.Start(cnf.Port)
+	srvr.Start(cfg.Port)
 }
