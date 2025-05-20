@@ -6,12 +6,11 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-
+	"github.com/i474232898/chatserver/api/types"
 	"github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/services"
+	"github.com/i474232898/chatserver/internal/app/validations"
 )
-
-var validate = validator.New(validator.WithRequiredStructEnabled())
 
 type ErrorResponse struct {
 	Field   string `json:"field"`
@@ -31,14 +30,14 @@ func NewAuthHandler(authService services.AuthService) AuthHandler {
 }
 
 func (handler authHandler) Signup(w http.ResponseWriter, r *http.Request) {
-	var req dto.SignupRequest
+	var req types.SignupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Incorrect body", http.StatusBadRequest)
 		w.Header().Set("Content-Type", "application/json")
 		return
 	}
 
-	if err := validate.Struct(req); err != nil {
+	if err := validations.ValidateUser(&req); err != nil {
 		var errors []ErrorResponse
 
 		for _, v := range err.(validator.ValidationErrors) {

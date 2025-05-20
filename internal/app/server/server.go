@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/i474232898/chatserver/configs"
 	"github.com/i474232898/chatserver/internal/app/handlers"
 	"github.com/i474232898/chatserver/internal/app/repositories"
 	"github.com/i474232898/chatserver/internal/app/services"
@@ -23,7 +24,8 @@ func NewServer() Server {
 }
 
 func (s *Server) setupRoutes() {
-	db := repositories.GetPool()
+	cfg := configs.New()
+	db, _ := repositories.GetPool(cfg)
 
 	userRepository := repositories.NewUserRepository(db)
 	authService := services.NewAuthService(userRepository)
