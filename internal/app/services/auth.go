@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"log/slog"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -27,13 +27,13 @@ func NewAuthService(userRepository repositories.UserRepository) AuthService {
 func (serv *authService) Signup(ctx context.Context, user *types.SignupRequest) (*dto.SignupResponse, error) {
 	hashedPassword, err := serv.hashPassword(user.Password)
 	if err != nil {
-		slog.Error("Password hashing failed", "error", err.Error())
+		return nil, err
 	}
 
 	newUser, err := serv.userRepository.Create(ctx, &models.User{Email: string(user.Email), Password: hashedPassword})
 
 	if err != nil {
-		slog.Error("Failed to create user", "error", err.Error())
+		fmt.Errorf("failed to create user. %w", err)
 		return nil, err
 	}
 
@@ -44,8 +44,7 @@ func (serv *authService) hashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	if err != nil {
-		slog.Error("Hashing failed", "error", err.Error())
-		return "", err
+		return "", fmt.Errorf("hashing failed: %w", err)
 	}
 
 	return string(hashedPassword), nil
