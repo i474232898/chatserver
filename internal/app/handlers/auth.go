@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/i474232898/chatserver/api/types"
-	"github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/services"
 	"github.com/i474232898/chatserver/internal/app/validations"
 )
@@ -57,5 +56,5 @@ func (handler authHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(dto.SignupResponse{ID: user.ID, Email: user.Email})
+	json.NewEncoder(w).Encode(user)
 }

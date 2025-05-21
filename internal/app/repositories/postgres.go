@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/i474232898/chatserver/configs"
+	"github.com/i474232898/chatserver/internal/app/repositories/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -33,7 +34,12 @@ func GetPool(cfg *configs.AppConfigs) (*gorm.DB, error) {
 			slog.Error("Unable to connect to database: %v", poolErr)
 			return
 		}
+		initDB(pool) //todo: change to versioned migration 
 	})
 
 	return pool, poolErr
+}
+
+func initDB(db *gorm.DB) {
+	db.AutoMigrate(&models.User{})
 }
