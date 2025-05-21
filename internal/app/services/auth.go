@@ -7,12 +7,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/i474232898/chatserver/api/types"
+	"github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/repositories"
 	"github.com/i474232898/chatserver/internal/app/repositories/models"
 )
 
 type AuthService interface {
-	Signup(ctx context.Context, user *types.SignupRequest) (*models.User, error)
+	Signup(ctx context.Context, user *types.SignupRequest) (*dto.SignupResponse, error)
 }
 
 type authService struct {
@@ -23,7 +24,7 @@ func NewAuthService(userRepository repositories.UserRepository) AuthService {
 	return &authService{userRepository: userRepository}
 }
 
-func (serv *authService) Signup(ctx context.Context, user *types.SignupRequest) (*models.User, error) {
+func (serv *authService) Signup(ctx context.Context, user *types.SignupRequest) (*dto.SignupResponse, error) {
 	hashedPassword, err := serv.hashPassword(user.Password)
 	if err != nil {
 		slog.Error("Password hashing failed", "error", err.Error())
@@ -36,7 +37,7 @@ func (serv *authService) Signup(ctx context.Context, user *types.SignupRequest) 
 		return nil, err
 	}
 
-	return newUser, nil
+	return &dto.SignupResponse{Email: newUser.Email, ID: newUser.ID}, nil
 }
 
 func (serv *authService) hashPassword(password string) (string, error) {

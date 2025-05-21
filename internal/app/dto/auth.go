@@ -6,6 +6,6 @@ type SignupRequest struct {
 }
 
 type SignupResponse struct {
-	ID       int    `json:"id"`
-	Email    string `json:"email"`
+	ID    uint   `json:"id"`
+	Email string `json:"email"`
 }
