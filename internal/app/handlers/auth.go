@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -51,6 +52,7 @@ func (handler authHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	user, err := handler.authService.Signup(ctx, &req)
 	if err != nil {
+		slog.Error(err.Error())
 		http.Error(w, "Failed to create user", http.StatusInternalServerError)
 		return
 	}
