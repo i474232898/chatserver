@@ -3,15 +3,13 @@ package repositories
 import (
 	"context"
 
-	// "github.com/i474232898/chatserver/internal/app/dto"
-	// "github.com/i474232898/chatserver/api/types"
-	// "github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/repositories/models"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user *models.User) (*models.User, error)
+	GetByEmail(ctx context.Context, email string) (*models.User, error)
 }
 
 type userRepository struct {
@@ -30,4 +28,12 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 	}
 
 	return user, nil
+}
+
+func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	var user models.User
+	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
