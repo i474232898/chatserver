@@ -33,6 +33,7 @@ func (s *Server) setupRoutes() {
 
 	s.router.Route("/auth", func(r chi.Router) {
 		r.Post("/signup", authHandler.Signup)
+		r.Post("/signin", authHandler.Signin)
 	})
 
 	s.router.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {

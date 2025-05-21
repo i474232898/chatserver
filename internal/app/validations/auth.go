@@ -13,3 +13,12 @@ func ValidateUser(user *types.SignupRequest) error {
 
 	return Validator.Struct(data)
 }
+
+func ValidateSignin(user *types.SigninRequest) error {
+	data := dto.SigninRequest{
+		Email:    string(user.Email),
+		Password: user.Password,
+	}
+
+	return Validator.Struct(data)
+}

@@ -29,6 +29,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SignupResponse'
+
+  /auth/signin:
+    post:
+      summary: Login user
+      description: Authenticate user with email and password
+      operationId: signin
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SigninRequest'
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SigninResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid email or password"
+
 components:
   schemas:
     SignupRequest:
@@ -54,6 +86,28 @@ components:
         email:
           type: string
           example: "abc@email.com"
+
+    SigninRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+
+    SigninResponse:
+      type: object
+      properties:
+
+        token:
+          type: string
+          description: JWT authentication token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
         # '400':
         #   description: Invalid request parameters
