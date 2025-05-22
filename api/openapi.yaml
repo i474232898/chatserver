@@ -1,0 +1,162 @@
+openapi: 3.0.0
+info:
+  title: Chat Server API
+  version: 1.0.0
+  description: API for the Chat Server application
+
+# servers:
+#   - url: http://localhost:8080
+    # description: Local development server
+
+paths:
+  /auth/signup:
+    post:
+      summary: Register a new user
+      description: Creates a new user account in the system
+      operationId: signup
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '200':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+
+  /auth/signin:
+    post:
+      summary: Login user
+      description: Authenticate user with email and password
+      operationId: signin
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SigninRequest'
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SigninResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid email or password"
+
+  /user/me:
+    get:
+      summary: Get current user information
+      description: Returns basic information about the currently authenticated user
+      operationId: getCurrentUser
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized - Invalid token"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    SignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+      required:
+        - email
+        - password
+
+    SignupResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          example: "abc@email.com"
+
+    SigninRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+
+    SigninResponse:
+      type: object
+      properties:
+
+        token:
+          type: string
+          description: JWT authentication token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-03-20T10:00:00Z"
+      required:
+        - id
+        - email
