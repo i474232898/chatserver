@@ -59,12 +59,7 @@ func (serv *authService) Signin(ctx context.Context, user *types.SigninRequest) 
 		return nil, app.ErrInvalidCredentials
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  dbUser.ID,
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
-	})
-
-	tokenString, err := token.SignedString([]byte("secret"))
+	tokenString, err := serv.GenerateToken(ctx, dbUser)
 	if err != nil {
 		return nil, err
 	}
@@ -80,4 +75,26 @@ func (serv *authService) hashPassword(password string) (string, error) {
 	}
 
 	return string(hashedPassword), nil
+}
+
+func (serv *authService) GenerateToken(ctx context.Context, user *models.User) (string, error) {
+	claims := &CustomClaims{
+		ID: int(user.ID),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
+}
+
+type CustomClaims struct {
+	ID int `json:"id"`
+	jwt.RegisteredClaims
 }

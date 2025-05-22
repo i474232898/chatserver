@@ -4,7 +4,13 @@
 package types
 
 import (
+	"time"
+
 	openapi_types "github.com/oapi-codegen/runtime/types"
+)
+
+const (
+	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
 // SigninRequest defines model for SigninRequest.
@@ -27,8 +33,15 @@ type SignupRequest struct {
 
 // SignupResponse defines model for SignupResponse.
 type SignupResponse struct {
-	Email *string  `json:"email,omitempty"`
-	Id    *float32 `json:"id,omitempty"`
+	Email *string `json:"email,omitempty"`
+	Id    *int64  `json:"id,omitempty"`
+}
+
+// UserInfo defines model for UserInfo.
+type UserInfo struct {
+	CreatedAt *time.Time          `json:"createdAt,omitempty"`
+	Email     openapi_types.Email `json:"email"`
+	Id        int64               `json:"id"`
 }
 
 // SigninJSONRequestBody defines body for Signin for application/json ContentType.
