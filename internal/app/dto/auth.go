@@ -18,3 +18,10 @@ type SigninRequest struct {
 type SigninResponse struct {
 	Token string `json:"token"`
 }
+
+type UserResponse struct {
+	Email     string  `json:"email"`
+	ID        int     `json:"id"`
+	CreatedAt string  `json:"createdAt"`
+	Username  *string `json:"username,omitempty"`
+}

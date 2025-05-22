@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/i474232898/chatserver/configs"
 	"github.com/i474232898/chatserver/internal/app/handlers"
+	"github.com/i474232898/chatserver/internal/app/middlewares"
 	"github.com/i474232898/chatserver/internal/app/repositories"
 	"github.com/i474232898/chatserver/internal/app/services"
 	"github.com/swaggest/swgui/v5emb"
@@ -30,10 +31,16 @@ func (s *Server) setupRoutes() {
 	userRepository := repositories.NewUserRepository(db)
 	authService := services.NewAuthService(userRepository)
 	authHandler := handlers.NewAuthHandler(authService)
+	userService := services.NewUserService(userRepository)
+	userHandler := handlers.NewUserHandler(userService)
 
 	s.router.Route("/auth", func(r chi.Router) {
 		r.Post("/signup", authHandler.Signup)
 		r.Post("/signin", authHandler.Signin)
+	})
+	s.router.Route("/user", func(r chi.Router) {
+		r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
+		r.Get("/me", userHandler.Me)
 	})
 
 	s.router.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
