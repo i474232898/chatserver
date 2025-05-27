@@ -69,7 +69,6 @@ func (serv *authService) Signin(ctx context.Context, user *types.SigninRequest) 
 
 func (serv *authService) hashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-
 	if err != nil {
 		return "", fmt.Errorf("hashing failed: %w", err)
 	}

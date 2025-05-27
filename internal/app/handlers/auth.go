@@ -53,7 +53,7 @@ func (handler authHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 	user, err := handler.authService.Signup(ctx, &req)
 	if err != nil {
 		slog.Error(err.Error())

@@ -10,10 +10,11 @@ import (
 )
 
 type ContextKey string
+
 const (
 	JWTClaimsKey ContextKey = "jwt_claims"
+	bearerPrefix            = "Bearer "
 )
-var bearerPrefix = "Bearer "
 
 func JWTAuthMiddleware(secretKey []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -47,5 +48,3 @@ func JWTAuthMiddleware(secretKey []byte) func(http.Handler) http.Handler {
 		})
 	}
 }
-
-
