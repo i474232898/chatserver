@@ -1,28 +1,66 @@
 package server
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/i474232898/chatserver/internal/app/auth"
-	httpSwagger "github.com/swaggo/http-swagger"
+	"github.com/i474232898/chatserver/configs"
+	"github.com/i474232898/chatserver/internal/app/handlers"
+	"github.com/i474232898/chatserver/internal/app/middlewares"
+	"github.com/i474232898/chatserver/internal/app/repositories"
+	"github.com/i474232898/chatserver/internal/app/services"
+	"github.com/swaggest/swgui/v5emb"
 )
 
-func Start(port string) {
-	r := chi.NewRouter()
+type Server struct {
+	router *chi.Mux
+}
 
-	// Middleware
+func NewServer() Server {
+	return Server{router: chi.NewRouter()}
+}
+
+func (s *Server) setupRoutes() {
+	cfg := configs.New()
+	db, _ := repositories.GetPool(cfg)
+
+	userRepository := repositories.NewUserRepository(db)
+	authService := services.NewAuthService(userRepository)
+	authHandler := handlers.NewAuthHandler(authService)
+	userService := services.NewUserService(userRepository)
+	userHandler := handlers.NewUserHandler(userService)
+
+	s.router.Route("/auth", func(r chi.Router) {
+		r.Post("/signup", authHandler.Signup)
+		r.Post("/signin", authHandler.Signin)
+	})
+	s.router.Route("/user", func(r chi.Router) {
+		r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
+		r.Get("/me", userHandler.Me)
+	})
+
+	s.router.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "api/openapi.yaml")
+	})
+	s.router.Mount("/docs", v5emb.NewHandler(
+		"Chat Server API Docs",
+		"/openapi.yaml",
+		"/docs",
+	))
+}
+
+func (s *Server) setupMiddlewares() {
+	r := s.router
+
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
-
-	// CORS middleware
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -32,24 +70,14 @@ func Start(port string) {
 		MaxAge:           300,
 	}))
 
-	// Swagger documentation
-	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("/swagger/doc.json"), // The url pointing to API definition
-	))
+}
 
-	// API routes
-	r.Route("/api", func(r chi.Router) {
-		// Auth routes
-		r.Route("/auth", func(r chi.Router) {
-			r.Post("/signup", auth.SignupH)
-			// Add more auth routes here as needed
-			// r.Post("/login", auth.LoginH)
-			// r.Post("/logout", auth.LogoutH)
-		})
-	})
+func (s *Server) Start(port string) {
+	s.setupMiddlewares()
+	s.setupRoutes()
 
-	log.Printf("Starting server on :%s", port)
-	if err := http.ListenAndServe(":"+port, r); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+	slog.Info("Starting server on :" + port)
+	if err := http.ListenAndServe(":"+port, s.router); err != nil {
+		slog.Error("Server failed to start: " + err.Error())
 	}
 }
