@@ -2,11 +2,16 @@ package websocket
 
 import (
 	"fmt"
-	"github.com/gorilla/websocket"
 	"log/slog"
+	"time"
+
+	"github.com/gorilla/websocket"
 )
 
-var P = fmt.Println
+var (
+	pongWait = 10 * time.Second
+	P        = fmt.Println
+)
 
 type Client struct {
 	Hub  *Hub
@@ -14,12 +19,10 @@ type Client struct {
 	Send chan []byte
 }
 
-func (c Client) Write() {
-	// for v := range c.Send {
-	// 	c.Conn.WriteMessage(1, v)
-	// }
+func (c *Client) Write() {
 	defer func() {
-		c.Hub.unregister <- &c
+
+		c.Hub.unregister <- c
 		c.Conn.Close()
 	}()
 
@@ -35,5 +38,27 @@ func (c Client) Write() {
 				return
 			}
 		}
+	}
+}
+
+func (c *Client) Read() {
+	defer func() {
+		c.Hub.unregister <- c
+		c.Conn.Close()
+	}()
+
+	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.Conn.SetPongHandler(func(string) error {
+		c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
+
+	for {
+		_, message, err := c.Conn.ReadMessage()
+		if err != nil {
+			slog.Error("Error reading message:", err)
+			break
+		}
+		c.Hub.broadcast <- message
 	}
 }

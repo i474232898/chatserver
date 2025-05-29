@@ -23,7 +23,6 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 		slog.Error(err.Error())
 		return
 	}
-	defer conn.Close()
 
 	client := Client{
 		Hub:  hub,
@@ -32,14 +31,6 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	hub.register <- &client
 
+	go client.Read()
 	go client.Write()
-	for {
-		messageType, message, err := conn.ReadMessage()
-		if err != nil {
-			slog.Error("Error reading message:", err)
-			break
-		}
-		P(messageType, "<messageType")
-		hub.broadcast <- message
-	}
 }
