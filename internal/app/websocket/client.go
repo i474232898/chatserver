@@ -11,17 +11,11 @@ var P = fmt.Println
 type Client struct {
 	Hub  *Hub
 	Conn *websocket.Conn
+	Send chan []byte
 }
 
-func NewClient(h *Hub, conn *websocket.Conn) *Client {
-	return &Client{
-		Hub:  h,
-		Conn: conn,
+func (c Client) Write() {
+	for v := range c.Send {
+		c.Conn.WriteMessage(1, v)
 	}
-}
-
-func (c Client) Write(msg []byte) {
-	// str := string(msg)
-	// P(str, "<<write<")
-	c.Conn.WriteMessage(1, msg)
 }

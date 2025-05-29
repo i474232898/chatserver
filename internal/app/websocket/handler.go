@@ -28,9 +28,11 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 	client := Client{
 		Hub:  hub,
 		Conn: conn,
+		Send: make(chan []byte, 256),
 	}
 	hub.register <- &client
 
+	go client.Write()
 	for {
 		messageType, message, err := conn.ReadMessage()
 		if err != nil {
@@ -38,25 +40,6 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		P(messageType, "<messageType")
-		hub.message <- message
+		hub.broadcast <- message
 	}
-
-	// for {
-	// 	// Read message from client
-	// 	messageType, message, err := conn.ReadMessage()
-	// 	if err != nil {
-	// 		slog.Error("Error reading message:", err)
-	// 		break
-	// 	}
-
-	// 	// Append "abc11" to the received message
-	// 	response := string(message) + "abc11"
-
-	// 	// Send the modified message back to the client
-	// 	err = conn.WriteMessage(messageType, []byte(response))
-	// 	if err != nil {
-	// 		slog.Error("Error writing message:", err)
-	// 		break
-	// 	}
-	// }
 }
