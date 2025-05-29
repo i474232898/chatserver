@@ -1,9 +1,10 @@
 package websocket
 
 type Hub struct {
-	clients   []*Client
-	broadcast chan []byte
-	register  chan *Client
+	clients    []*Client
+	broadcast  chan []byte
+	register   chan *Client
+	unregister chan *Client
 }
 
 func (h Hub) Run() {
@@ -16,14 +17,18 @@ func (h Hub) Run() {
 			for _, cl := range h.clients {
 				cl.Send <- msg
 			}
+			// case client := <-h.unregister:
+
 		}
+
 	}
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		broadcast: make(chan []byte),
-		register:  make(chan *Client),
-		clients:   make([]*Client, 0),
+		broadcast:  make(chan []byte),
+		register:   make(chan *Client),
+		unregister: make(chan *Client),
+		clients:    make([]*Client, 0),
 	}
 }
