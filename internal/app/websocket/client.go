@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -10,7 +9,7 @@ import (
 
 var (
 	pongWait = 10 * time.Second
-	P        = fmt.Println
+	pingWait = 5 * time.Second
 )
 
 type Client struct {
@@ -20,10 +19,11 @@ type Client struct {
 }
 
 func (c *Client) Write() {
+	ticker := time.NewTicker(pingWait)
 	defer func() {
-
 		c.Hub.unregister <- c
 		c.Conn.Close()
+		ticker.Stop()
 	}()
 
 	for {
@@ -35,6 +35,12 @@ func (c *Client) Write() {
 			}
 			if err := c.Conn.WriteMessage(1, msg); err != nil {
 				slog.Debug(err.Error())
+				return
+			}
+		case <-ticker.C:
+			err := c.Conn.WriteMessage(websocket.PingMessage, []byte{})
+			if err != nil {
+				c.Hub.unregister <- c
 				return
 			}
 		}
