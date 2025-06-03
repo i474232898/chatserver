@@ -13,6 +13,7 @@ import (
 	"github.com/i474232898/chatserver/internal/app/middlewares"
 	"github.com/i474232898/chatserver/internal/app/repositories"
 	"github.com/i474232898/chatserver/internal/app/services"
+	"github.com/i474232898/chatserver/internal/app/websocket"
 	"github.com/swaggest/swgui/v5emb"
 )
 
@@ -42,6 +43,7 @@ func (s *Server) setupRoutes() {
 		r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
 		r.Get("/me", userHandler.Me)
 	})
+	s.router.Get("/ws", websocket.WebsocketHandler)
 
 	s.router.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "api/openapi.yaml")
