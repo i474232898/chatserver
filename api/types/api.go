@@ -13,6 +13,13 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// NewRoomResponse defines model for NewRoomResponse.
+type NewRoomResponse struct {
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	Id        *int64     `json:"id,omitempty"`
+	Name      *string    `json:"name,omitempty"`
+}
+
 // SigninRequest defines model for SigninRequest.
 type SigninRequest struct {
 	Email    openapi_types.Email `json:"email"`
@@ -44,8 +51,17 @@ type UserInfo struct {
 	Id        int64               `json:"id"`
 }
 
+// CreateRoomJSONBody defines parameters for CreateRoom.
+type CreateRoomJSONBody struct {
+	// Name Name of the chat room
+	Name string `json:"name"`
+}
+
 // SigninJSONRequestBody defines body for Signin for application/json ContentType.
 type SigninJSONRequestBody = SigninRequest
 
 // SignupJSONRequestBody defines body for Signup for application/json ContentType.
 type SignupJSONRequestBody = SignupRequest
+
+// CreateRoomJSONRequestBody defines body for CreateRoom for application/json ContentType.
+type CreateRoomJSONRequestBody CreateRoomJSONBody

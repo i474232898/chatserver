@@ -13,7 +13,7 @@ import (
 	"github.com/i474232898/chatserver/internal/app/middlewares"
 	"github.com/i474232898/chatserver/internal/app/repositories"
 	"github.com/i474232898/chatserver/internal/app/services"
-	"github.com/i474232898/chatserver/internal/app/websocket"
+	// "github.com/i474232898/chatserver/internal/app/websocket"
 	"github.com/swaggest/swgui/v5emb"
 )
 
@@ -35,6 +35,10 @@ func (s *Server) setupRoutes() {
 	userService := services.NewUserService(userRepository)
 	userHandler := handlers.NewUserHandler(userService)
 
+	roomRepository := repositories.NewRoomRepository(db)
+	roomService := services.NewChatRoomService(roomRepository)
+	roomHadler := handlers.NewChatRoomHandler(roomService)
+
 	s.router.Route("/auth", func(r chi.Router) {
 		r.Post("/signup", authHandler.Signup)
 		r.Post("/signin", authHandler.Signin)
@@ -43,7 +47,15 @@ func (s *Server) setupRoutes() {
 		r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
 		r.Get("/me", userHandler.Me)
 	})
-	s.router.Get("/ws", websocket.WebsocketHandler)
+	s.router.Route("/rooms", func(r chi.Router) {
+		r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
+		r.Post("/", roomHadler.CreateRoom)
+	})
+	// s.router.Get("/ws", websocket.WebsocketHandler)
+	// s.router.Route("/ws", func(r chi.Router) {
+	// 	r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
+	// 	r.Get("/room/{chatroom}", websocket.ChatRoomHandler)
+	// })
 
 	s.router.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "api/openapi.yaml")

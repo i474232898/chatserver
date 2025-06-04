@@ -41,5 +41,5 @@ func GetPool(cfg *configs.AppConfigs) (*gorm.DB, error) {
 }
 
 func initDB(db *gorm.DB) {
-	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.User{}, &models.Room{})
 }

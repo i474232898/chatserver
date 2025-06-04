@@ -9,4 +9,5 @@ type User struct {
 	Email    string `gorm:"uniqueIndex;not null"`
 	Username *string
 	Password string
+	Rooms    []Room `gorm:"many2many:rooms_users;"`
 }

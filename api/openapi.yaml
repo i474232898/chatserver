@@ -4,9 +4,8 @@ info:
   version: 1.0.0
   description: API for the Chat Server application
 
-# servers:
-#   - url: http://localhost:8080
-    # description: Local development server
+servers:
+  - url: http://localhost:8080
 
 paths:
   /auth/signup:
@@ -77,6 +76,46 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserInfo'
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized - Invalid token"
+
+  /rooms:
+    post:
+      summary: Create a new chat room
+      description: Creates a new chat room with the specified name
+      operationId: createRoom
+      tags:
+        - Rooms
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the chat room
+                  example: "General Discussion"
+              required:
+                - name
+      responses:
+        '201':
+          description: Chat room successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewRoomResponse'
         '401':
           description: Unauthorized - Invalid or missing token
           content:
@@ -160,3 +199,18 @@ components:
       required:
         - id
         - email
+
+    NewRoomResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: "General Discussion"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-03-20T10:00:00Z" 
