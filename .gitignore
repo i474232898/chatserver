@@ -2,3 +2,4 @@
 .vscode
 .cursorrules
 bin
+cmd/chatserver

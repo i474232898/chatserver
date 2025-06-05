@@ -77,15 +77,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserInfo'
         '401':
-          description: Unauthorized - Invalid or missing token
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Unauthorized - Invalid token"
+          $ref: '#/components/responses/UnauthorizedError'
 
   /rooms:
     post:
@@ -107,6 +99,13 @@ paths:
                   type: string
                   description: Name of the chat room
                   example: "General Discussion"
+                memberIDs:
+                  type: array
+                  description: List of user IDs to add as members to the room
+                  items:
+                    type: integer
+                    format: int64
+                  example: [123, 456, 789]
               required:
                 - name
       responses:
@@ -117,15 +116,32 @@ paths:
               schema:
                 $ref: '#/components/schemas/NewRoomResponse'
         '401':
-          description: Unauthorized - Invalid or missing token
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /rooms/direct:
+    post:
+      summary: Create a direct chat room with a user
+      description: Creates a direct chat room between the authenticated user and the specified user
+      operationId: createDirectRoom
+      tags:
+        - Rooms
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDirectRoomRequest'
+      responses:
+        '201':
+          description: Direct chat room successfully created
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Unauthorized - Invalid token"
+                $ref: '#/components/schemas/NewRoomResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
 
 components:
   securitySchemes:
@@ -213,4 +229,27 @@ components:
         createdAt:
           type: string
           format: date-time
-          example: "2024-03-20T10:00:00Z" 
+          example: "2024-03-20T10:00:00Z"
+
+    CreateDirectRoomRequest:
+      type: object
+      properties:
+        userID:
+          type: integer
+          format: int64
+          description: ID of the user to start a direct chat with
+          example: 456
+      required:
+        - userID
+
+  responses:
+    UnauthorizedError:
+      description: Unauthorized - Invalid or missing token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Unauthorized - Invalid token" 

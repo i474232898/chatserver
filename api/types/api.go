@@ -13,6 +13,12 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// CreateDirectRoomRequest defines model for CreateDirectRoomRequest.
+type CreateDirectRoomRequest struct {
+	// UserID ID of the user to start a direct chat with
+	UserID int64 `json:"userID"`
+}
+
 // NewRoomResponse defines model for NewRoomResponse.
 type NewRoomResponse struct {
 	CreatedAt *time.Time `json:"createdAt,omitempty"`
@@ -51,8 +57,16 @@ type UserInfo struct {
 	Id        int64               `json:"id"`
 }
 
+// UnauthorizedError defines model for UnauthorizedError.
+type UnauthorizedError struct {
+	Error *string `json:"error,omitempty"`
+}
+
 // CreateRoomJSONBody defines parameters for CreateRoom.
 type CreateRoomJSONBody struct {
+	// MemberIDs List of user IDs to add as members to the room
+	MemberIDs *[]int64 `json:"memberIDs,omitempty"`
+
 	// Name Name of the chat room
 	Name string `json:"name"`
 }
@@ -65,3 +79,6 @@ type SignupJSONRequestBody = SignupRequest
 
 // CreateRoomJSONRequestBody defines body for CreateRoom for application/json ContentType.
 type CreateRoomJSONRequestBody CreateRoomJSONBody
+
+// CreateDirectRoomJSONRequestBody defines body for CreateDirectRoom for application/json ContentType.
+type CreateDirectRoomJSONRequestBody = CreateDirectRoomRequest
