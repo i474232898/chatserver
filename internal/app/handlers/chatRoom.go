@@ -83,3 +83,22 @@ func (handler *ChatRoomHandler) DirectMessage(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(newRoom)
 }
+
+func (handler *ChatRoomHandler) ListRooms(w http.ResponseWriter, r *http.Request) {
+	jwtClaims := r.Context().Value(middlewares.JWTClaimsKey)
+	claims, ok := jwtClaims.(*services.CustomClaims)
+	if !ok {
+		slog.Error("Invalid JWT claims type")
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	userID := claims.ID
+
+	rooms, err := handler.chatRoomService.ListRooms(r.Context(), uint64(userID))
+	if err != nil {
+		slog.Error(err.Error())
+		http.Error(w, "Failed to list rooms", http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(rooms)
+}

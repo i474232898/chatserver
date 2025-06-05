@@ -7,8 +7,8 @@ type CreateRoomRequest struct {
 }
 
 type RoomDTO struct {
-	ID        uint
-	Name      string
+	RoomId    uint
+	RoomName  string
 	CreatedAt *time.Time
 	// Admin
 	// Users

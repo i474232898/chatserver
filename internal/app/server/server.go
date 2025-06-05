@@ -49,6 +49,7 @@ func (s *Server) setupRoutes() {
 	})
 	s.router.Route("/rooms", func(r chi.Router) {
 		r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
+		r.Get("/", roomHadler.ListRooms)
 		r.Post("/", roomHadler.CreateRoom)
 		r.Post("/direct", roomHadler.DirectMessage)
 	})

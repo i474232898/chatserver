@@ -16,6 +16,7 @@ type ChatRoomService interface {
 	Create(ctx context.Context, room *dto.NewRoomDTO) (*dto.RoomDTO, error)
 	GetByName(ctx context.Context, name string) (*models.Room, error)
 	GetById(ctx context.Context, id int64) (*models.Room, error)
+	ListRooms(ctx context.Context, userId uint64) ([]dto.RoomDTO, error)
 }
 
 type chatRoomService struct {
@@ -51,10 +52,26 @@ func (s *chatRoomService) Create(ctx context.Context, room *dto.NewRoomDTO) (*dt
 	}
 
 	return &dto.RoomDTO{
-		Name:      newRoom.Name,
-		ID:        newRoom.ID,
+		RoomName:  newRoom.Name,
+		RoomId:    newRoom.ID,
 		CreatedAt: &newRoom.CreatedAt,
 	}, nil
+}
+
+func (s *chatRoomService) ListRooms(ctx context.Context, userId uint64) ([]dto.RoomDTO, error) {
+	rooms, err := s.roomRepo.RoomsList(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	roomsDTO := []dto.RoomDTO{}
+	for _, room := range rooms {
+		roomsDTO = append(roomsDTO, dto.RoomDTO{
+			RoomId:    room.ID,
+			RoomName:  room.Name,
+			CreatedAt: &room.CreatedAt,
+		})
+	}
+	return roomsDTO, nil
 }
 
 func (s *chatRoomService) GetByName(ctx context.Context, name string) (*models.Room, error) {

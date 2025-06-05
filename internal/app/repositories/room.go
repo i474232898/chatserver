@@ -12,6 +12,7 @@ type RoomRepository interface {
 	Create(ctx context.Context, room *models.Room) (*models.Room, error)
 	GetByName(ctx context.Context, name string) (*models.Room, error)
 	GetById(ctx context.Context, id int64) (*models.Room, error)
+	RoomsList(ctx context.Context, userId uint64) ([]models.Room, error)
 }
 
 type roomRepository struct {
@@ -30,6 +31,15 @@ func (r *roomRepository) Create(ctx context.Context, room *models.Room) (*models
 	}
 
 	return room, nil
+}
+
+func (r *roomRepository) RoomsList(ctx context.Context, userId uint64) ([]models.Room, error) {
+	//select * from rooms where id in (select room_id from rooms_users where user_id = ?)
+	var rooms []models.Room
+	if err := r.db.WithContext(ctx).Where("id in (select room_id from rooms_users where user_id = ?)", userId).Find(&rooms).Error; err != nil {
+		return nil, err
+	}
+	return rooms, nil
 }
 
 func (r *roomRepository) GetByName(ctx context.Context, name string) (*models.Room, error) {

@@ -26,6 +26,22 @@ type NewRoomResponse struct {
 	Name      *string    `json:"name,omitempty"`
 }
 
+// Room defines model for Room.
+type Room struct {
+	CreatedAt time.Time `json:"createdAt"`
+	Id        int64     `json:"id"`
+
+	// IsDirect Whether this room is a direct chat
+	IsDirect bool       `json:"isDirect"`
+	Members  []UserInfo `json:"members"`
+	Name     string     `json:"name"`
+}
+
+// RoomsListResponse defines model for RoomsListResponse.
+type RoomsListResponse struct {
+	Rooms []Room `json:"rooms"`
+}
+
 // SigninRequest defines model for SigninRequest.
 type SigninRequest struct {
 	Email    openapi_types.Email `json:"email"`
