@@ -38,9 +38,7 @@ type Room struct {
 }
 
 // RoomsListResponse defines model for RoomsListResponse.
-type RoomsListResponse struct {
-	Rooms []Room `json:"rooms"`
-}
+type RoomsListResponse = []Room
 
 // SigninRequest defines model for SigninRequest.
 type SigninRequest struct {

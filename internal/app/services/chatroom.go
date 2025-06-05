@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	// "github.com/i474232898/chatserver/api/types"
+	"github.com/i474232898/chatserver/api/types"
 	"github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/repositories"
 	"github.com/i474232898/chatserver/internal/app/repositories/models"
@@ -16,7 +17,7 @@ type ChatRoomService interface {
 	Create(ctx context.Context, room *dto.NewRoomDTO) (*dto.RoomDTO, error)
 	GetByName(ctx context.Context, name string) (*models.Room, error)
 	GetById(ctx context.Context, id int64) (*models.Room, error)
-	ListRooms(ctx context.Context, userId uint64) ([]dto.RoomDTO, error)
+	ListRooms(ctx context.Context, userId uint64) (types.RoomsListResponse, error)
 }
 
 type chatRoomService struct {
@@ -58,20 +59,21 @@ func (s *chatRoomService) Create(ctx context.Context, room *dto.NewRoomDTO) (*dt
 	}, nil
 }
 
-func (s *chatRoomService) ListRooms(ctx context.Context, userId uint64) ([]dto.RoomDTO, error) {
+func (s *chatRoomService) ListRooms(ctx context.Context, userId uint64) (types.RoomsListResponse, error) {
 	rooms, err := s.roomRepo.RoomsList(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
-	roomsDTO := []dto.RoomDTO{}
+	roomsResp := types.RoomsListResponse{}
+
 	for _, room := range rooms {
-		roomsDTO = append(roomsDTO, dto.RoomDTO{
-			RoomId:    room.ID,
-			RoomName:  room.Name,
-			CreatedAt: &room.CreatedAt,
+		roomsResp = append(roomsResp, types.Room{
+			CreatedAt: room.CreatedAt,
+			Id:        int64(room.ID),
+			Name:      room.Name,
 		})
 	}
-	return roomsDTO, nil
+	return roomsResp, nil
 }
 
 func (s *chatRoomService) GetByName(ctx context.Context, name string) (*models.Room, error) {

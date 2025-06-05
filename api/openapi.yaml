@@ -260,14 +260,9 @@ components:
         - userID
 
     RoomsListResponse:
-      type: object
-      properties:
-        rooms:
-          type: array
-          items:
-            $ref: '#/components/schemas/Room'
-      required:
-        - rooms
+      type: array
+      items:
+        $ref: '#/components/schemas/Room'
 
     Room:
       type: object
