@@ -34,12 +34,24 @@ func (r *roomRepository) Create(ctx context.Context, room *models.Room) (*models
 }
 
 func (r *roomRepository) RoomsList(ctx context.Context, userId uint64) ([]models.Room, error) {
-	//select * from rooms where id in (select room_id from rooms_users where user_id = ?)
 	var rooms []models.Room
 	if err := r.db.WithContext(ctx).Where("id in (select room_id from rooms_users where user_id = ?)", userId).Find(&rooms).Error; err != nil {
 		return nil, err
 	}
 	return rooms, nil
+}
+
+func (r *roomRepository) IsUserInRoom(ctx context.Context, userId uint64, roomId int64) bool {
+	var count int64
+	db := r.db.WithContext(ctx).Model(&models.Room{})
+	db = db.Where(
+		"id = ? AND id in (select room_id from rooms_users where user_id = ?)",
+		roomId, userId,
+	)
+	if err := db.Count(&count).Error; err != nil {
+		return false
+	}
+	return count > 0
 }
 
 func (r *roomRepository) GetByName(ctx context.Context, name string) (*models.Room, error) {

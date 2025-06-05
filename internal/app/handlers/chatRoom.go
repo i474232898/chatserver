@@ -2,13 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
-	// "fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/i474232898/chatserver/api/types"
+	"github.com/i474232898/chatserver/internal/app"
 	"github.com/i474232898/chatserver/internal/app/dto"
-	"github.com/i474232898/chatserver/internal/app/middlewares"
 	"github.com/i474232898/chatserver/internal/app/services"
 )
 
@@ -26,7 +25,7 @@ func (handler *ChatRoomHandler) CreateRoom(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	jwtClaims := r.Context().Value(middlewares.JWTClaimsKey)
+	jwtClaims := r.Context().Value(app.JWTClaimsKey)
 
 	claims, ok := jwtClaims.(*services.CustomClaims)
 	if !ok {
@@ -59,7 +58,7 @@ func (handler *ChatRoomHandler) DirectMessage(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	jwtClaims := r.Context().Value(middlewares.JWTClaimsKey)
+	jwtClaims := r.Context().Value(app.JWTClaimsKey)
 
 	claims, ok := jwtClaims.(*services.CustomClaims)
 	if !ok {
@@ -85,7 +84,7 @@ func (handler *ChatRoomHandler) DirectMessage(w http.ResponseWriter, r *http.Req
 }
 
 func (handler *ChatRoomHandler) ListRooms(w http.ResponseWriter, r *http.Request) {
-	jwtClaims := r.Context().Value(middlewares.JWTClaimsKey)
+	jwtClaims := r.Context().Value(app.JWTClaimsKey)
 	claims, ok := jwtClaims.(*services.CustomClaims)
 	if !ok {
 		slog.Error("Invalid JWT claims type")

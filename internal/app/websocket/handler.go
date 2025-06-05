@@ -4,7 +4,9 @@ import (
 	"log/slog"
 	"net/http"
 
+	// "github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
+	// "github.com/i474232898/chatserver/internal/app/common"
 )
 
 var upgrader = websocket.Upgrader{
@@ -33,4 +35,19 @@ func WebsocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	go client.Read()
 	go client.Write()
+}
+
+// ws/room/{roomID}?token=JWT
+func ChatRoomHandler(w http.ResponseWriter, r *http.Request) {
+	// token := r.URL.Query().Get("token")
+	// roomId := chi.URLParam(r, "roomID")
+
+	// claims, err := common.ParseJWT(token, []byte("secret"))
+	// if err != nil {
+	// 	slog.Error(err.Error())
+	// 	return
+	// }
+
+	// //check is user in room
+	// repo	
 }

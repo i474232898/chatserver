@@ -13,7 +13,7 @@ import (
 	"github.com/i474232898/chatserver/internal/app/middlewares"
 	"github.com/i474232898/chatserver/internal/app/repositories"
 	"github.com/i474232898/chatserver/internal/app/services"
-	// "github.com/i474232898/chatserver/internal/app/websocket"
+	"github.com/i474232898/chatserver/internal/app/websocket"
 	"github.com/swaggest/swgui/v5emb"
 )
 
@@ -54,10 +54,12 @@ func (s *Server) setupRoutes() {
 		r.Post("/direct", roomHadler.DirectMessage)
 	})
 	// s.router.Get("/ws", websocket.WebsocketHandler)
-	// s.router.Route("/ws", func(r chi.Router) {
-	// 	r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
-	// 	r.Get("/room/{chatroom}", websocket.ChatRoomHandler)
-	// })
+	s.router.Route("/ws", func(r chi.Router) {
+		// r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
+		
+		//ws/room/{roomID}?token=JWT
+		r.Get("/room/{roomID}", websocket.ChatRoomHandler)
+	})
 
 	s.router.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "api/openapi.yaml")
