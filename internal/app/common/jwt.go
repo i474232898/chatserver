@@ -16,10 +16,10 @@ func ParseJWT(token string, secretKey []byte) (services.CustomClaims, error) {
 		return claims, errors.New("invalid token")
 	}
 
-	claims, ok := data.Claims.(services.CustomClaims)
+	cl, ok := data.Claims.(*services.CustomClaims)
 	if !ok {
 		return claims, errors.New("invalid token claims")
 	}
 
-	return claims, nil
+	return *cl, nil
 }

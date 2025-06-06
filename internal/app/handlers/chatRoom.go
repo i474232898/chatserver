@@ -7,6 +7,7 @@ import (
 
 	"github.com/i474232898/chatserver/api/types"
 	"github.com/i474232898/chatserver/internal/app"
+	"github.com/i474232898/chatserver/internal/app/common"
 	"github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/services"
 )
@@ -25,12 +26,9 @@ func (handler *ChatRoomHandler) CreateRoom(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	jwtClaims := r.Context().Value(app.JWTClaimsKey)
-
-	claims, ok := jwtClaims.(*services.CustomClaims)
+	claims, ok := common.GetClaimsFromContext(r.Context())
 	if !ok {
-		slog.Error("Invalid JWT claims type")
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 	userID := claims.ID
