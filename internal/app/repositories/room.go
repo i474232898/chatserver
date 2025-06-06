@@ -13,6 +13,7 @@ type RoomRepository interface {
 	GetByName(ctx context.Context, name string) (*models.Room, error)
 	GetById(ctx context.Context, id int64) (*models.Room, error)
 	RoomsList(ctx context.Context, userId uint64) ([]models.Room, error)
+	IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool
 }
 
 type roomRepository struct {
@@ -41,7 +42,7 @@ func (r *roomRepository) RoomsList(ctx context.Context, userId uint64) ([]models
 	return rooms, nil
 }
 
-func (r *roomRepository) IsUserInRoom(ctx context.Context, userId uint64, roomId int64) bool {
+func (r *roomRepository) IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool {
 	var count int64
 	db := r.db.WithContext(ctx).Model(&models.Room{})
 	db = db.Where(

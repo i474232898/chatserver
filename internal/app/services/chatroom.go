@@ -18,6 +18,7 @@ type ChatRoomService interface {
 	GetByName(ctx context.Context, name string) (*models.Room, error)
 	GetById(ctx context.Context, id int64) (*models.Room, error)
 	ListRooms(ctx context.Context, userId uint64) (types.RoomsListResponse, error)
+	IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool
 }
 
 type chatRoomService struct {
@@ -76,17 +77,21 @@ func (s *chatRoomService) ListRooms(ctx context.Context, userId uint64) (types.R
 	return roomsResp, nil
 }
 
-func (s *chatRoomService) GetByName(ctx context.Context, name string) (*models.Room, error) {
-	return s.roomRepo.GetByName(ctx, name)
-}
-func (s *chatRoomService) GetById(ctx context.Context, id int64) (*models.Room, error) {
-	return s.roomRepo.GetById(ctx, id)
-}
-
 func generateDirectRoomName(userIDs []int64) string {
 	sort.Slice(userIDs, func(i, j int) bool {
 		return userIDs[i] < userIDs[j]
 	})
 
 	return "direct-" + strconv.Itoa(int(userIDs[0])) + "-" + strconv.Itoa(int(userIDs[1]))
+}
+
+func (s *chatRoomService) IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool {
+	return s.roomRepo.IsUserInRoom(ctx, userId, roomId)
+}
+
+func (s *chatRoomService) GetByName(ctx context.Context, name string) (*models.Room, error) {
+	return s.roomRepo.GetByName(ctx, name)
+}
+func (s *chatRoomService) GetById(ctx context.Context, id int64) (*models.Room, error) {
+	return s.roomRepo.GetById(ctx, id)
 }
