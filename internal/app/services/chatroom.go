@@ -5,7 +5,6 @@ import (
 	"sort"
 	"strconv"
 
-	// "github.com/i474232898/chatserver/api/types"
 	"github.com/i474232898/chatserver/api/types"
 	"github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/repositories"
@@ -38,8 +37,8 @@ func (s *chatRoomService) Create(ctx context.Context, room *dto.NewRoomDTO) (*dt
 
 	roomName := room.Name
 	//direct message
-	if len(*room.MemberIDs) == 1 && room.Name == "" {
-		roomName = generateDirectRoomName(*room.MemberIDs)
+	if len(users) == 2 && room.Name == "" {
+		roomName = generateDirectRoomName(users)
 	}
 
 	newRoom := &models.Room{
@@ -77,12 +76,12 @@ func (s *chatRoomService) ListRooms(ctx context.Context, userId uint64) (types.R
 	return roomsResp, nil
 }
 
-func generateDirectRoomName(userIDs []int64) string {
-	sort.Slice(userIDs, func(i, j int) bool {
-		return userIDs[i] < userIDs[j]
+func generateDirectRoomName(users []models.User) string {
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].ID < users[j].ID
 	})
 
-	return "direct-" + strconv.Itoa(int(userIDs[0])) + "-" + strconv.Itoa(int(userIDs[1]))
+	return "direct-" + strconv.Itoa(int(users[0].ID)) + "-" + strconv.Itoa(int(users[1].ID))
 }
 
 func (s *chatRoomService) IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool {
