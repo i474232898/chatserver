@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 var (
 	pongWait = 10 * time.Second
 	pingWait = 5 * time.Second
+	p        = fmt.Println
 )
 
 type Client struct {
@@ -58,6 +60,7 @@ func (c *Client) Read() {
 		c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
+	p("<<Read<")
 
 	for {
 		_, message, err := c.Conn.ReadMessage()
@@ -65,6 +68,7 @@ func (c *Client) Read() {
 			slog.Error("Error reading message:", err)
 			break
 		}
+		p(message, "<<<")
 		c.Hub.broadcast <- message
 	}
 }

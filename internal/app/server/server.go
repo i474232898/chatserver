@@ -35,6 +35,12 @@ func (s *Server) setupRoutes() {
 	userService := services.NewUserService(userRepository)
 	userHandler := handlers.NewUserHandler(userService)
 
+	roomRepository := repositories.NewRoomRepository(db)
+	roomService := services.NewChatRoomService(roomRepository)
+	roomHadler := handlers.NewChatRoomHandler(roomService)
+
+	ws := websocket.NewWebsocketHandler(roomService)
+
 	s.router.Route("/auth", func(r chi.Router) {
 		r.Post("/signup", authHandler.Signup)
 		r.Post("/signin", authHandler.Signin)
@@ -43,7 +49,19 @@ func (s *Server) setupRoutes() {
 		r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
 		r.Get("/me", userHandler.Me)
 	})
-	s.router.Get("/ws", websocket.WebsocketHandler)
+	s.router.Route("/rooms", func(r chi.Router) {
+		r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
+		r.Get("/", roomHadler.ListRooms)
+		r.Post("/", roomHadler.CreateRoom)
+		r.Post("/direct", roomHadler.DirectMessage)
+	})
+	// s.router.Get("/ws", websocket.WebsocketHandler)
+	s.router.Route("/ws", func(r chi.Router) {
+		// r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
+		
+		//ws/room/{roomID}?token=JWT
+		r.Get("/room/{roomID}", ws.JoinChatRoomHandler)
+	})
 
 	s.router.Get("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "api/openapi.yaml")
@@ -63,6 +81,7 @@ func (s *Server) setupMiddlewares() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(middlewares.ContentTypeJSONMiddleware)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
