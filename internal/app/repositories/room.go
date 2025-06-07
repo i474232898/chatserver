@@ -3,13 +3,13 @@ package repositories
 import (
 	"context"
 
-	// "github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/repositories/models"
 	"gorm.io/gorm"
 )
 
 type RoomRepository interface {
 	Create(ctx context.Context, room *models.Room) (*models.Room, error)
+	CreateDirectRoom(ctx context.Context, room *models.Room) (*models.Room, error)
 	GetByName(ctx context.Context, name string) (*models.Room, error)
 	GetById(ctx context.Context, id int64) (*models.Room, error)
 	RoomsList(ctx context.Context, userId uint64) ([]models.Room, error)
@@ -32,6 +32,19 @@ func (r *roomRepository) Create(ctx context.Context, room *models.Room) (*models
 	}
 
 	return room, nil
+}
+
+func (r *roomRepository) CreateDirectRoom(ctx context.Context, room *models.Room) (*models.Room, error) {
+	//check if room with same name exists
+	var dbRoom models.Room
+	if err := r.db.WithContext(ctx).Model(&models.Room{}).Where("name = ?", room.Name).First(&dbRoom).Error; err != nil {
+		return nil, err
+	}
+	if dbRoom.ID != 0 {
+		return &dbRoom, nil
+	}
+
+	return r.Create(ctx, room)
 }
 
 func (r *roomRepository) RoomsList(ctx context.Context, userId uint64) ([]models.Room, error) {

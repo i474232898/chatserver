@@ -42,20 +42,28 @@ func (s *chatRoomService) Create(ctx context.Context, room *dto.NewRoomDTO) (*dt
 	}
 
 	newRoom := &models.Room{
-		Name:    roomName,
-		AdminID: room.AdminID,
-		Users:   users,
+		Name:     roomName,
+		AdminID:  room.AdminID,
+		Users:    users,
+		IsDirect: len(users) == 2,
 	}
 
-	_, err := s.roomRepo.Create(ctx, newRoom)
+	var err error
+	var roomDb *models.Room
+	if len(users) == 2 {
+		roomDb, err = s.roomRepo.CreateDirectRoom(ctx, newRoom)
+	} else {
+		roomDb, err = s.roomRepo.Create(ctx, newRoom)
+	}
 	if err != nil {
 		return nil, err
 	}
 
 	return &dto.RoomDTO{
-		RoomName:  newRoom.Name,
-		RoomId:    newRoom.ID,
+		RoomName:  roomDb.Name,
+		RoomId:    roomDb.ID,
 		CreatedAt: &newRoom.CreatedAt,
+		IsDirect:  roomDb.IsDirect,
 	}, nil
 }
 

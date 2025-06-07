@@ -10,6 +10,7 @@ type RoomDTO struct {
 	RoomId    uint
 	RoomName  string
 	CreatedAt *time.Time
+	IsDirect  bool
 	// Admin
 	// Users
 }

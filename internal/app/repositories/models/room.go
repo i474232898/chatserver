@@ -12,4 +12,5 @@ type Room struct {
 	AdminID   uint
 	Admin     User
 	Users     []User `gorm:"many2many:rooms_users;"`
+	IsDirect  bool
 }
