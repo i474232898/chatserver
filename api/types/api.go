@@ -13,6 +13,33 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// CreateDirectRoomRequest defines model for CreateDirectRoomRequest.
+type CreateDirectRoomRequest struct {
+	// UserID ID of the user to start a direct chat with
+	UserID int64 `json:"userID"`
+}
+
+// NewRoomResponse defines model for NewRoomResponse.
+type NewRoomResponse struct {
+	CreatedAt *time.Time `json:"createdAt,omitempty"`
+	Id        *int64     `json:"id,omitempty"`
+	Name      *string    `json:"name,omitempty"`
+}
+
+// Room defines model for Room.
+type Room struct {
+	CreatedAt time.Time `json:"createdAt"`
+	Id        int64     `json:"id"`
+
+	// IsDirect Whether this room is a direct chat
+	IsDirect bool       `json:"isDirect"`
+	Members  []UserInfo `json:"members"`
+	Name     string     `json:"name"`
+}
+
+// RoomsListResponse defines model for RoomsListResponse.
+type RoomsListResponse = []Room
+
 // SigninRequest defines model for SigninRequest.
 type SigninRequest struct {
 	Email    openapi_types.Email `json:"email"`
@@ -44,8 +71,28 @@ type UserInfo struct {
 	Id        int64               `json:"id"`
 }
 
+// UnauthorizedError defines model for UnauthorizedError.
+type UnauthorizedError struct {
+	Error *string `json:"error,omitempty"`
+}
+
+// CreateRoomJSONBody defines parameters for CreateRoom.
+type CreateRoomJSONBody struct {
+	// MemberIDs List of user IDs to add as members to the room
+	MemberIDs *[]int64 `json:"memberIDs,omitempty"`
+
+	// Name Name of the chat room
+	Name string `json:"name"`
+}
+
 // SigninJSONRequestBody defines body for Signin for application/json ContentType.
 type SigninJSONRequestBody = SigninRequest
 
 // SignupJSONRequestBody defines body for Signup for application/json ContentType.
 type SignupJSONRequestBody = SignupRequest
+
+// CreateRoomJSONRequestBody defines body for CreateRoom for application/json ContentType.
+type CreateRoomJSONRequestBody CreateRoomJSONBody
+
+// CreateDirectRoomJSONRequestBody defines body for CreateDirectRoom for application/json ContentType.
+type CreateDirectRoomJSONRequestBody = CreateDirectRoomRequest
