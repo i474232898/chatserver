@@ -19,6 +19,15 @@ type CreateDirectRoomRequest struct {
 	UserID int64 `json:"userID"`
 }
 
+// CreateRoomRequest defines model for CreateRoomRequest.
+type CreateRoomRequest struct {
+	// MemberIDs List of user IDs to add as members to the room
+	MemberIDs *[]int64 `json:"memberIDs,omitempty"`
+
+	// Name Name of the chat room
+	Name string `json:"name"`
+}
+
 // NewRoomResponse defines model for NewRoomResponse.
 type NewRoomResponse struct {
 	CreatedAt *time.Time `json:"createdAt,omitempty"`
@@ -76,15 +85,6 @@ type UnauthorizedError struct {
 	Error *string `json:"error,omitempty"`
 }
 
-// CreateRoomJSONBody defines parameters for CreateRoom.
-type CreateRoomJSONBody struct {
-	// MemberIDs List of user IDs to add as members to the room
-	MemberIDs *[]int64 `json:"memberIDs,omitempty"`
-
-	// Name Name of the chat room
-	Name string `json:"name"`
-}
-
 // SigninJSONRequestBody defines body for Signin for application/json ContentType.
 type SigninJSONRequestBody = SigninRequest
 
@@ -92,7 +92,7 @@ type SigninJSONRequestBody = SigninRequest
 type SignupJSONRequestBody = SignupRequest
 
 // CreateRoomJSONRequestBody defines body for CreateRoom for application/json ContentType.
-type CreateRoomJSONRequestBody CreateRoomJSONBody
+type CreateRoomJSONRequestBody = CreateRoomRequest
 
 // CreateDirectRoomJSONRequestBody defines body for CreateDirectRoom for application/json ContentType.
 type CreateDirectRoomJSONRequestBody = CreateDirectRoomRequest

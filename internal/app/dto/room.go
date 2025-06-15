@@ -15,7 +15,7 @@ type RoomDTO struct {
 	// Users
 }
 
-type NewRoomDTO struct {
+type CreateRoomDTO struct {
 	AdminID   uint
 	MemberIDs *[]int64
 	CreateRoomRequest

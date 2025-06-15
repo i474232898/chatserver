@@ -58,7 +58,7 @@ func (s *Server) setupRoutes() {
 	// s.router.Get("/ws", websocket.WebsocketHandler)
 	s.router.Route("/ws", func(r chi.Router) {
 		// r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
-		
+
 		//ws/room/{roomID}?token=JWT
 		r.Get("/room/{roomID}", ws.JoinChatRoomHandler)
 	})

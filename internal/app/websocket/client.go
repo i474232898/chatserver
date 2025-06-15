@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 var (
 	pongWait = 10 * time.Second
 	pingWait = 5 * time.Second
-	p        = fmt.Println
 )
 
 type Client struct {
@@ -24,7 +22,10 @@ func (c *Client) Write() {
 	ticker := time.NewTicker(pingWait)
 	defer func() {
 		c.Hub.unregister <- c
-		c.Conn.Close()
+		err := c.Conn.Close()
+		if err != nil {
+			slog.Error("Error closing connection", "error", err)
+		}
 		ticker.Stop()
 	}()
 
@@ -32,7 +33,10 @@ func (c *Client) Write() {
 		select {
 		case msg, ok := <-c.Send:
 			if !ok {
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{}) //send close frame
+				err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{}) //send close frame
+				if err != nil {
+					slog.Error("Error writing close message", "error", err)
+				}
 				return
 			}
 			if err := c.Conn.WriteMessage(1, msg); err != nil {
@@ -52,23 +56,30 @@ func (c *Client) Write() {
 func (c *Client) Read() {
 	defer func() {
 		c.Hub.unregister <- c
-		c.Conn.Close()
+		err := c.Conn.Close()
+		if err != nil {
+			slog.Error("Error closing connection", "error", err)
+		}
 	}()
 
-	c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+	err := c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+	if err != nil {
+		slog.Error("Error setting read deadline", "error", err.Error())
+	}
 	c.Conn.SetPongHandler(func(string) error {
-		c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+		err := c.Conn.SetReadDeadline(time.Now().Add(pongWait))
+		if err != nil {
+			slog.Error("Error setting read deadline", "error", err.Error())
+		}
 		return nil
 	})
-	p("<<Read<")
 
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
-			slog.Error("Error reading message:", err)
+			slog.Error("Error reading message", "error", err.Error())
 			break
 		}
-		p(message, "<<<")
 		c.Hub.broadcast <- message
 	}
 }

@@ -11,7 +11,6 @@ type RoomRepository interface {
 	Create(ctx context.Context, room *models.Room) (*models.Room, error)
 	CreateDirectRoom(ctx context.Context, room *models.Room) (*models.Room, error)
 	GetByName(ctx context.Context, name string) (*models.Room, error)
-	GetById(ctx context.Context, id int64) (*models.Room, error)
 	RoomsList(ctx context.Context, userId uint64) ([]models.Room, error)
 	IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool
 }
@@ -26,7 +25,6 @@ func NewRoomRepository(db *gorm.DB) RoomRepository {
 
 func (r *roomRepository) Create(ctx context.Context, room *models.Room) (*models.Room, error) {
 	result := r.db.Create(room)
-
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -71,18 +69,6 @@ func (r *roomRepository) IsUserInRoom(ctx context.Context, userId uint64, roomId
 func (r *roomRepository) GetByName(ctx context.Context, name string) (*models.Room, error) {
 	var room models.Room
 	result := r.db.Where("name = ?", name).Preload("Admin").Preload("Users").First(&room)
-
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	return &room, nil
-}
-
-func (r *roomRepository) GetById(ctx context.Context, id int64) (*models.Room, error) {
-	var room models.Room
-	result := r.db.Where("id = ?", id).Preload("Admin").Preload("Users").First(&room)
-
 	if result.Error != nil {
 		return nil, result.Error
 	}

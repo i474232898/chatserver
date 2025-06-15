@@ -7,7 +7,5 @@ func ValidateChatRoom(roomName, from string) error {
 		return errors.New("empty name")
 	}
 
-	
-
 	return nil
 }

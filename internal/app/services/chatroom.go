@@ -13,9 +13,8 @@ import (
 )
 
 type ChatRoomService interface {
-	Create(ctx context.Context, room *dto.NewRoomDTO) (*dto.RoomDTO, error)
+	Create(ctx context.Context, room *dto.CreateRoomDTO) (*dto.RoomDTO, error)
 	GetByName(ctx context.Context, name string) (*models.Room, error)
-	GetById(ctx context.Context, id int64) (*models.Room, error)
 	ListRooms(ctx context.Context, userId uint64) (types.RoomsListResponse, error)
 	IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool
 }
@@ -28,7 +27,7 @@ func NewChatRoomService(roomRepo repositories.RoomRepository) ChatRoomService {
 	return &chatRoomService{roomRepo: roomRepo}
 }
 
-func (s *chatRoomService) Create(ctx context.Context, room *dto.NewRoomDTO) (*dto.RoomDTO, error) {
+func (s *chatRoomService) Create(ctx context.Context, room *dto.CreateRoomDTO) (*dto.RoomDTO, error) {
 	users := []models.User{}
 	for _, id := range *room.MemberIDs {
 		users = append(users, models.User{Model: gorm.Model{ID: uint(id)}})
@@ -98,7 +97,4 @@ func (s *chatRoomService) IsUserInRoom(ctx context.Context, userId uint64, roomI
 
 func (s *chatRoomService) GetByName(ctx context.Context, name string) (*models.Room, error) {
 	return s.roomRepo.GetByName(ctx, name)
-}
-func (s *chatRoomService) GetById(ctx context.Context, id int64) (*models.Room, error) {
-	return s.roomRepo.GetById(ctx, id)
 }

@@ -20,7 +20,7 @@ func NewChatRoomHandler(chatRoomService services.ChatRoomService) *ChatRoomHandl
 }
 
 func (handler *ChatRoomHandler) CreateRoom(w http.ResponseWriter, r *http.Request) {
-	var room types.CreateRoomJSONBody
+	var room types.CreateRoomRequest
 	if err := json.NewDecoder(r.Body).Decode(&room); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -32,7 +32,7 @@ func (handler *ChatRoomHandler) CreateRoom(w http.ResponseWriter, r *http.Reques
 	}
 	userID := claims.ID
 
-	newRoom, err := handler.chatRoomService.Create(r.Context(), &dto.NewRoomDTO{
+	newRoom, err := handler.chatRoomService.Create(r.Context(), &dto.CreateRoomDTO{
 		AdminID:   uint(userID),
 		MemberIDs: room.MemberIDs,
 		CreateRoomRequest: dto.CreateRoomRequest{
@@ -63,7 +63,7 @@ func (handler *ChatRoomHandler) DirectMessage(w http.ResponseWriter, r *http.Req
 	adminID := claims.ID
 	members := []int64{room.UserID}
 
-	newRoom, err := handler.chatRoomService.Create(r.Context(), &dto.NewRoomDTO{
+	newRoom, err := handler.chatRoomService.Create(r.Context(), &dto.CreateRoomDTO{
 		AdminID:   uint(adminID),
 		MemberIDs: &members,
 	})
