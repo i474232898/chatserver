@@ -14,7 +14,7 @@ import (
 
 type ChatRoomService interface {
 	Create(ctx context.Context, room *dto.CreateRoomDTO) (*dto.RoomDTO, error)
-	GetByName(ctx context.Context, name string) (*models.Room, error)
+	GetByName(ctx context.Context, name string) (*dto.RoomDTO, error)
 	ListRooms(ctx context.Context, userId uint64) (types.RoomsListResponse, error)
 	IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool
 }
@@ -95,6 +95,14 @@ func (s *chatRoomService) IsUserInRoom(ctx context.Context, userId uint64, roomI
 	return s.roomRepo.IsUserInRoom(ctx, userId, roomId)
 }
 
-func (s *chatRoomService) GetByName(ctx context.Context, name string) (*models.Room, error) {
-	return s.roomRepo.GetByName(ctx, name)
+func (s *chatRoomService) GetByName(ctx context.Context, name string) (*dto.RoomDTO, error) {
+	model, err := s.roomRepo.GetByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.RoomDTO{
+		RoomName:  model.Name,
+		RoomId:    model.ID,
+		CreatedAt: &model.CreatedAt,
+	}, nil
 }

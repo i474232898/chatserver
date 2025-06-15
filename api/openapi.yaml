@@ -28,6 +28,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SignupResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -51,6 +53,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SigninResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           description: Invalid credentials
           content:
@@ -306,6 +310,22 @@ components:
       required:
         - name
 
+    ValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+          description: The field that failed validation
+          example: "email"
+        message:
+          type: string
+          description: The validation error message
+          example: "email is required"
+      required:
+        - field
+        - message
+
+
   responses:
     UnauthorizedError:
       description: Unauthorized - Invalid or missing token
@@ -327,3 +347,12 @@ components:
           example: "An unexpected error occurred while processing your request"
         required:
           - error
+
+    BadRequestError:
+      description: Bad Request - Validation Error
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ValidationError'

@@ -80,6 +80,18 @@ type UserInfo struct {
 	Id        int64               `json:"id"`
 }
 
+// ValidationError defines model for ValidationError.
+type ValidationError struct {
+	// Field The field that failed validation
+	Field string `json:"field"`
+
+	// Message The validation error message
+	Message string `json:"message"`
+}
+
+// BadRequestError defines model for BadRequestError.
+type BadRequestError = []ValidationError
+
 // UnauthorizedError defines model for UnauthorizedError.
 type UnauthorizedError struct {
 	Error *string `json:"error,omitempty"`
