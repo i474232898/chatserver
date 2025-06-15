@@ -309,6 +309,7 @@ components:
           example: [123, 456, 789]
       required:
         - name
+        - memberIDs
 
     ValidationError:
       type: object

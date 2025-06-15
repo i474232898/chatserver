@@ -22,7 +22,7 @@ type CreateDirectRoomRequest struct {
 // CreateRoomRequest defines model for CreateRoomRequest.
 type CreateRoomRequest struct {
 	// MemberIDs List of user IDs to add as members to the room
-	MemberIDs *[]int64 `json:"memberIDs,omitempty"`
+	MemberIDs []int64 `json:"memberIDs"`
 
 	// Name Name of the chat room
 	Name string `json:"name"`

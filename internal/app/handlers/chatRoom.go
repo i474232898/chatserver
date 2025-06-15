@@ -8,7 +8,9 @@ import (
 	"github.com/i474232898/chatserver/api/types"
 	"github.com/i474232898/chatserver/internal/app/common"
 	"github.com/i474232898/chatserver/internal/app/dto"
+	handlercommon "github.com/i474232898/chatserver/internal/app/handlers/common"
 	"github.com/i474232898/chatserver/internal/app/services"
+	"github.com/i474232898/chatserver/internal/app/validations"
 )
 
 type ChatRoomHandler struct {
@@ -25,6 +27,10 @@ func (handler *ChatRoomHandler) CreateRoom(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	if err := validations.ValidateCreateRoom(&room); err != nil {
+		handlercommon.HandleValidationErrors(w, err)
+		return
+	}
 	claims, ok := common.GetClaimsFromContext(r.Context())
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -35,9 +41,7 @@ func (handler *ChatRoomHandler) CreateRoom(w http.ResponseWriter, r *http.Reques
 	newRoom, err := handler.chatRoomService.Create(r.Context(), &dto.CreateRoomDTO{
 		AdminID:   uint(userID),
 		MemberIDs: room.MemberIDs,
-		CreateRoomRequest: dto.CreateRoomRequest{
-			Name: room.Name,
-		},
+		Name:      room.Name,
 	})
 	if err != nil {
 		slog.Error(err.Error())
@@ -55,6 +59,10 @@ func (handler *ChatRoomHandler) DirectMessage(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	if err := validations.ValidateCreateDirectRoom(&room); err != nil {
+		handlercommon.HandleValidationErrors(w, err)
+		return
+	}
 	claims, ok := common.GetClaimsFromContext(r.Context())
 	if !ok {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -65,7 +73,7 @@ func (handler *ChatRoomHandler) DirectMessage(w http.ResponseWriter, r *http.Req
 
 	newRoom, err := handler.chatRoomService.Create(r.Context(), &dto.CreateRoomDTO{
 		AdminID:   uint(adminID),
-		MemberIDs: &members,
+		MemberIDs: members,
 	})
 	if err != nil {
 		slog.Error(err.Error())

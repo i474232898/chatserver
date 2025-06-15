@@ -29,7 +29,7 @@ func NewChatRoomService(roomRepo repositories.RoomRepository) ChatRoomService {
 
 func (s *chatRoomService) Create(ctx context.Context, room *dto.CreateRoomDTO) (*dto.RoomDTO, error) {
 	users := []models.User{}
-	for _, id := range *room.MemberIDs {
+	for _, id := range room.MemberIDs {
 		users = append(users, models.User{Model: gorm.Model{ID: uint(id)}})
 	}
 	users = append(users, models.User{Model: gorm.Model{ID: room.AdminID}})
