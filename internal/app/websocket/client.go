@@ -1,10 +1,12 @@
 package websocket
 
 import (
+	"context"
 	"log/slog"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/i474232898/chatserver/internal/app/services"
 )
 
 var (
@@ -13,9 +15,12 @@ var (
 )
 
 type Client struct {
-	Hub  *Hub
-	Conn *websocket.Conn
-	Send chan []byte
+	Hub         *Hub
+	Conn        *websocket.Conn
+	Send        chan []byte
+	RoomId      uint64
+	UserId      uint64
+	RoomService services.ChatRoomService
 }
 
 func (c *Client) Write() {
@@ -28,6 +33,14 @@ func (c *Client) Write() {
 		}
 		ticker.Stop()
 	}()
+
+	msgs, err := c.RoomService.GetMessages(context.Background(), c.RoomId, time.Now())
+	if err != nil {
+		slog.Error("Error getting messages", "error", err.Error())
+	}
+	for _, msg := range msgs {
+		c.Conn.WriteMessage(websocket.TextMessage, []byte(msg.Content))
+	}
 
 	for {
 		select {
@@ -80,6 +93,14 @@ func (c *Client) Read() {
 			slog.Error("Error reading message", "error", err.Error())
 			break
 		}
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		_, err = c.RoomService.SaveMessage(ctx, c.RoomId, c.UserId, string(message))
+		cancel()
+		if err != nil {
+			slog.Error("Error saving message", "error", err.Error())
+			continue
+		}
+
 		c.Hub.broadcast <- message
 	}
 }

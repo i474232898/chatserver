@@ -36,7 +36,8 @@ func (s *Server) setupRoutes() {
 	userHandler := handlers.NewUserHandler(userService)
 
 	roomRepository := repositories.NewRoomRepository(db)
-	roomService := services.NewChatRoomService(roomRepository)
+	messageRepository := repositories.NewMessageRepository(db)
+	roomService := services.NewChatRoomService(roomRepository, messageRepository)
 	roomHadler := handlers.NewChatRoomHandler(roomService)
 
 	ws := websocket.NewWebsocketHandler(roomService)

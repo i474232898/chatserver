@@ -18,11 +18,11 @@ var upgrader = websocket.Upgrader{
 var hm = NewHubManager()
 
 type WebsocketHandler struct {
-	service services.ChatRoomService
+	roomService services.ChatRoomService
 }
 
 func NewWebsocketHandler(serv services.ChatRoomService) *WebsocketHandler {
-	return &WebsocketHandler{service: serv}
+	return &WebsocketHandler{roomService: serv}
 }
 
 func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +39,7 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	invited := h.service.IsUserInRoom(r.Context(), uint64(claims.ID), uint64(roomId))
+	invited := h.roomService.IsUserInRoom(r.Context(), uint64(claims.ID), uint64(roomId))
 	if !invited {
 		slog.Info("Not invited")
 		return
@@ -52,12 +52,14 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 	}
 	hub := hm.GetHub(roomId)
 	client := Client{
-		Hub:  hub,
-		Conn: conn,
-		Send: make(chan []byte, 256),
+		Hub:         hub,
+		Conn:        conn,
+		Send:        make(chan []byte, 256),
+		RoomId:      uint64(roomId),
+		UserId:      uint64(claims.ID),
+		RoomService: h.roomService,
 	}
-	hub.register <- &client
-
-	go client.Read()
 	go client.Write()
+	hub.register <- &client
+	go client.Read()
 }
