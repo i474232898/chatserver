@@ -7,18 +7,12 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
-
 	"github.com/i474232898/chatserver/api/types"
 	"github.com/i474232898/chatserver/internal/app"
+	"github.com/i474232898/chatserver/internal/app/handlers/common"
 	"github.com/i474232898/chatserver/internal/app/services"
 	"github.com/i474232898/chatserver/internal/app/validations"
 )
-
-type ErrorResponse struct { //todo: define bad request in swagger
-	Field   string `json:"field"`
-	Message string `json:"message"`
-}
 
 type AuthHandler interface {
 	Signup(w http.ResponseWriter, r *http.Request)
@@ -42,14 +36,7 @@ func (handler authHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validations.ValidateUser(&req); err != nil {
-		var errors []ErrorResponse
-
-		for _, v := range err.(validator.ValidationErrors) {
-			errors = append(errors, ErrorResponse{Message: v.Error(), Field: v.Field()})
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errors)
+		common.HandleValidationErrors(w, err)
 		return
 	}
 
@@ -74,14 +61,7 @@ func (handler authHandler) Signin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := validations.ValidateSignin(&req); err != nil {
-		var errors []ErrorResponse
-
-		for _, v := range err.(validator.ValidationErrors) {
-			errors = append(errors, ErrorResponse{Message: v.Error(), Field: v.Field()})
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errors)
+		common.HandleValidationErrors(w, err)
 		return
 	}
 

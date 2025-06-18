@@ -2,9 +2,9 @@ package dto
 
 import "time"
 
-type CreateRoomRequest struct {
-	Name string `json:"name" validate:"required"`
-}
+// type CreateRoomRequest struct {
+// 	Name string `json:"name" validate:"required,min=3,max=255"`
+// }
 
 type RoomDTO struct {
 	RoomId    uint
@@ -15,8 +15,12 @@ type RoomDTO struct {
 	// Users
 }
 
-type NewRoomDTO struct {
+type CreateRoomDTO struct {
+	Name      string `json:"name" validate:"required,min=3,max=255"`
 	AdminID   uint
-	MemberIDs *[]int64
-	CreateRoomRequest
+	MemberIDs []int64 `json:"memberIDs" validate:"required,min=1,dive,gt=0"`
+}
+
+type CreateDirectRoomRequest struct {
+	UserID int64 `json:"userID" validate:"required,gt=0"`
 }

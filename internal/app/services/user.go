@@ -30,6 +30,6 @@ func (serv *userService) Me(ctx context.Context, userId int64) (*dto.UserRespons
 		ID:        int(user.ID),
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		Username:  user.Username, 
+		Username:  user.Username,
 	}, nil
 }

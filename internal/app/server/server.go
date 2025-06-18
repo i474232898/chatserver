@@ -36,7 +36,8 @@ func (s *Server) setupRoutes() {
 	userHandler := handlers.NewUserHandler(userService)
 
 	roomRepository := repositories.NewRoomRepository(db)
-	roomService := services.NewChatRoomService(roomRepository)
+	messageRepository := repositories.NewMessageRepository(db)
+	roomService := services.NewChatRoomService(roomRepository, messageRepository)
 	roomHadler := handlers.NewChatRoomHandler(roomService)
 
 	ws := websocket.NewWebsocketHandler(roomService)
@@ -58,7 +59,7 @@ func (s *Server) setupRoutes() {
 	// s.router.Get("/ws", websocket.WebsocketHandler)
 	s.router.Route("/ws", func(r chi.Router) {
 		// r.Use(middlewares.JWTAuthMiddleware([]byte("secret")))
-		
+
 		//ws/room/{roomID}?token=JWT
 		r.Get("/room/{roomID}", ws.JoinChatRoomHandler)
 	})

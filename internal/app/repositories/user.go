@@ -33,7 +33,7 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) (*models
 
 func (r *userRepository) GetById(ctx context.Context, id int64) (*models.User, error) {
 	var user models.User
-		if err := r.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil

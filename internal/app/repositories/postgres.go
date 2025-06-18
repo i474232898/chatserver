@@ -31,15 +31,18 @@ func GetPool(cfg *configs.AppConfigs) (*gorm.DB, error) {
 			),
 		}), &gorm.Config{})
 		if poolErr != nil {
-			slog.Error("Unable to connect to database: %v", poolErr)
+			slog.Error("Unable to connect to database", "error", poolErr)
 			return
 		}
-		initDB(pool) //todo: change to versioned migration 
+		initDB(pool) //todo: change to versioned migration
 	})
 
 	return pool, poolErr
 }
 
 func initDB(db *gorm.DB) {
-	db.AutoMigrate(&models.User{}, &models.Room{})
+	err := db.AutoMigrate(&models.User{}, &models.Room{}, &models.ChatMessage{})
+	if err != nil {
+		slog.Error("Error migrating database", "error", err.Error())
+	}
 }

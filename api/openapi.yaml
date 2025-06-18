@@ -28,6 +28,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SignupResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /auth/signin:
     post:
@@ -49,6 +53,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SigninResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
         '401':
           description: Invalid credentials
           content:
@@ -59,6 +65,8 @@ paths:
                   error:
                     type: string
                     example: "Invalid email or password"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /user/me:
     get:
@@ -78,7 +86,8 @@ paths:
                 $ref: '#/components/schemas/UserInfo'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /rooms:
     post:
       summary: Create a new chat room
@@ -93,21 +102,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: Name of the chat room
-                  example: "General Discussion"
-                memberIDs:
-                  type: array
-                  description: List of user IDs to add as members to the room
-                  items:
-                    type: integer
-                    format: int64
-                  example: [123, 456, 789]
-              required:
-                - name
+              $ref: '#/components/schemas/CreateRoomRequest'
       responses:
         '201':
           description: Chat room successfully created
@@ -117,6 +112,8 @@ paths:
                 $ref: '#/components/schemas/NewRoomResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     get:
       summary: List all chat rooms
       description: Returns a list of chat rooms the authenticated user is a member of
@@ -134,7 +131,8 @@ paths:
                 $ref: '#/components/schemas/RoomsListResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
-
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /rooms/direct:
     post:
       summary: Create a direct chat room with a user
@@ -159,6 +157,8 @@ paths:
                 $ref: '#/components/schemas/NewRoomResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   securitySchemes:
@@ -293,6 +293,40 @@ components:
         - isDirect
         - members
 
+    CreateRoomRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the chat room
+          example: "General Discussion"
+        memberIDs:
+          type: array
+          description: List of user IDs to add as members to the room
+          items:
+            type: integer
+            format: int64
+          example: [123, 456, 789]
+      required:
+        - name
+        - memberIDs
+
+    ValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+          description: The field that failed validation
+          example: "email"
+        message:
+          type: string
+          description: The validation error message
+          example: "email is required"
+      required:
+        - field
+        - message
+
+
   responses:
     UnauthorizedError:
       description: Unauthorized - Invalid or missing token
@@ -303,4 +337,23 @@ components:
             properties:
               error:
                 type: string
-                example: "Unauthorized - Invalid token" 
+                example: "Unauthorized - Invalid token"
+    InternalServerError:
+      description: Internal Server Error
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message describing what went wrong
+          example: "An unexpected error occurred while processing your request"
+        required:
+          - error
+
+    BadRequestError:
+      description: Bad Request - Validation Error
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ValidationError'
