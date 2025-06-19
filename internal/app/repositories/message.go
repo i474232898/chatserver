@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"time"
 
 	"github.com/i474232898/chatserver/internal/app/repositories/models"
 	"gorm.io/gorm"
@@ -14,7 +13,7 @@ type messageRepository struct {
 
 type MessageRepository interface {
 	Create(ctx context.Context, msg *models.ChatMessage) (models.ChatMessage, error)
-	GetMessages(ctx context.Context, roomId uint64, since time.Time) ([]models.ChatMessage, error)
+	GetMessages(ctx context.Context, roomId, lastMessageId uint64) ([]models.ChatMessage, error)
 }
 
 func NewMessageRepository(db *gorm.DB) MessageRepository {
@@ -29,9 +28,10 @@ func (r messageRepository) Create(ctx context.Context, msg *models.ChatMessage) 
 	return *msg, nil
 }
 
-func (r messageRepository) GetMessages(ctx context.Context, roomId uint64, since time.Time) ([]models.ChatMessage, error) {
+func (r messageRepository) GetMessages(ctx context.Context, roomId, lastMessageId uint64) ([]models.ChatMessage, error) {
 	var msgs []models.ChatMessage
-	result := r.db.WithContext(ctx).Where("room_id = ? AND created_at <= ?", roomId, since).Find(&msgs)
+	createdAt := r.db.Model(&models.ChatMessage{}).Select("created_at").Where("id=?", lastMessageId)
+	result := r.db.WithContext(ctx).Where("room_id = ? AND created_at <= ?", roomId, createdAt).Find(&msgs)
 	if result.Error != nil {
 		return nil, result.Error
 	}

@@ -35,12 +35,13 @@ func (s *Server) setupRoutes() {
 	userService := services.NewUserService(userRepository)
 	userHandler := handlers.NewUserHandler(userService)
 
-	roomRepository := repositories.NewRoomRepository(db)
-	messageRepository := repositories.NewMessageRepository(db)
-	roomService := services.NewChatRoomService(roomRepository, messageRepository)
-	roomHadler := handlers.NewChatRoomHandler(roomService)
+	roomRepo := repositories.NewRoomRepository(db)
+	messageRepo := repositories.NewMessageRepository(db)
+	userRoomOffsetRepo := repositories.NewUserRoomOffsetRepository(db)
+	roomServ := services.NewChatRoomService(roomRepo, messageRepo, userRoomOffsetRepo)
+	roomHadler := handlers.NewChatRoomHandler(roomServ)
 
-	ws := websocket.NewWebsocketHandler(roomService)
+	ws := websocket.NewWebsocketHandler(roomServ)
 
 	s.router.Route("/auth", func(r chi.Router) {
 		r.Post("/signup", authHandler.Signup)
