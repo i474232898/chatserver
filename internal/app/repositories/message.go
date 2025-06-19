@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/i474232898/chatserver/internal/app/repositories/models"
 	"gorm.io/gorm"
@@ -30,8 +31,24 @@ func (r messageRepository) Create(ctx context.Context, msg *models.ChatMessage) 
 
 func (r messageRepository) GetMessages(ctx context.Context, roomId, lastMessageId uint64) ([]models.ChatMessage, error) {
 	var msgs []models.ChatMessage
-	createdAt := r.db.Model(&models.ChatMessage{}).Select("created_at").Where("id=?", lastMessageId)
-	result := r.db.WithContext(ctx).Where("room_id = ? AND created_at <= ?", roomId, createdAt).Find(&msgs)
+	fmt.Println(lastMessageId, "<<lastMessageId")
+
+	if lastMessageId == 0 {
+		result := r.db.WithContext(ctx).Where("room_id = ?", roomId).Find(&msgs)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+		return msgs, nil
+	}
+
+	createdAt := r.db.Model(&models.ChatMessage{}).
+		Select("COALESCE(created_at, '1970-01-01 00:00:00')").Where("id=?", lastMessageId)
+	mainQuery := r.db.WithContext(ctx).Where("room_id = ? AND created_at > (?)", roomId, createdAt)
+
+	sql := mainQuery.ToSQL(func(tx *gorm.DB) *gorm.DB { return tx.Find(&msgs) })
+	fmt.Println(sql)
+
+	result := mainQuery.Find(&msgs)
 	if result.Error != nil {
 		return nil, result.Error
 	}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/i474232898/chatserver/internal/app/repositories/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type userRoomOffsetRepository struct {
@@ -22,9 +23,17 @@ func NewUserRoomOffsetRepository(db *gorm.DB) UserRoomOffsetRepository {
 
 func (r *userRoomOffsetRepository) UpdateUserRoomOffset(ctx context.Context, roomId uint64,
 	userId uint64, lastReadMessage uint64) error {
-	return r.db.WithContext(ctx).Model(&models.UserRoomOffset{}).
-		Where("room_id = ? AND user_id = ?", roomId, userId).
-		Update("last_read_message", lastReadMessage).Error
+
+	result := r.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "room_id"}, {Name: "user_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"last_read_message"}),
+	}).Create(&models.UserRoomOffset{
+		RoomId:          roomId,
+		UserId:          userId,
+		LastReadMessage: lastReadMessage,
+	})
+
+	return result.Error
 }
 
 func (r *userRoomOffsetRepository) GetUserRoomOffset(ctx context.Context,

@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"context"
-	"fmt"
+	// "fmt"
 	"log/slog"
 	"time"
 
@@ -27,7 +27,11 @@ type Client struct {
 
 func (c *Client) Write() {
 	ticker := time.NewTicker(pingWait)
-	var lastSentMessageId uint
+	lastSentMessageId, err := c.RoomService.GetUserRoomOffset(context.Background(), c.RoomId, c.UserId)
+	if err != nil {
+		slog.Error("Error getting user room offset", "error", err.Error())
+	}
+	// fmt.Println(lastSentMessageId, c.RoomId, c.UserId, "<<lastSentMessageId")
 	defer func() {
 		c.Hub.unregister <- c
 		err := c.Conn.Close()
@@ -36,13 +40,12 @@ func (c *Client) Write() {
 		}
 		ticker.Stop()
 
-		c.RoomService.UpdateUserRoomOffset(context.Background(), c.RoomId, c.UserId, uint64(lastSentMessageId))
+		err = c.RoomService.UpdateUserRoomOffset(context.Background(), c.RoomId, c.UserId, uint64(lastSentMessageId))
+		if err != nil {
+			slog.Error("Error updating user room offset", "error", err.Error())
+		}
 	}()
 
-	// lastMessageId, err := c.RoomService.GetUserRoomOffset(context.Background(), c.RoomId, c.UserId)
-	// if err != nil {
-	// 	slog.Error("Error getting user room offset", "error", err.Error())
-	// }
 	//send all messages that client hasn't seen yet
 	msgs, err := c.RoomService.GetMessages(context.Background(), c.RoomId, uint64(lastSentMessageId))
 	if err != nil {
@@ -54,8 +57,8 @@ func (c *Client) Write() {
 			slog.Error("Error writing message", "error", err.Error())
 			return
 		}
-		lastSentMessageId = msg.ID
-		fmt.Println(lastSentMessageId, "222")
+		lastSentMessageId = uint64(msg.ID)
+		// fmt.Println(lastSentMessageId, "222")
 	}
 
 	for {
@@ -72,8 +75,8 @@ func (c *Client) Write() {
 				slog.Debug(err.Error())
 				return
 			}
-			lastSentMessageId = msg.ID
-			fmt.Println(lastSentMessageId, "<<<")
+			lastSentMessageId = uint64(msg.ID)
+			// fmt.Println(lastSentMessageId, "<<<")
 		case <-ticker.C:
 			err := c.Conn.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
