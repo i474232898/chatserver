@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"github.com/i474232898/chatserver/internal/app/common"
+	"github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/services"
 )
 
@@ -54,7 +55,7 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 	client := Client{
 		Hub:         hub,
 		Conn:        conn,
-		Send:        make(chan []byte, 256),
+		Send:        make(chan dto.MessageDTO, 256),
 		RoomId:      uint64(roomId),
 		UserId:      uint64(claims.ID),
 		RoomService: h.roomService,
