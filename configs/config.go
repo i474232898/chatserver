@@ -23,10 +23,7 @@ type AppConfigs struct {
 var config AppConfigs
 
 func New() *AppConfigs {
-	err := godotenv.Load()
-	if err != nil {
-		panic("incomplete environment vars")
-	}
+	godotenv.Load()
 	config = AppConfigs{
 		Port:        os.Getenv("PORT"),
 		DatabaseURL: os.Getenv("DATABASE_URL"),
@@ -39,6 +36,5 @@ func New() *AppConfigs {
 			Port:     os.Getenv("DB_PORT"),
 		},
 	}
-
 	return &config
 }
