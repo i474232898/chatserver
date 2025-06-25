@@ -33,6 +33,11 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 		slog.Error(err.Error())
 		return
 	}
+	lastSentMessageId, err := strconv.Atoi(chi.URLParam(r, "lastSeenMsgID"))
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
 
 	claims, err := common.ParseJWT(token, []byte("secret"))
 	if err != nil {
@@ -60,7 +65,7 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 		UserId:      uint64(claims.ID),
 		RoomService: h.roomService,
 	}
-	go client.Write()
+	go client.Write(uint64(lastSentMessageId))
 	hub.register <- &client
 	go client.Read()
 }
