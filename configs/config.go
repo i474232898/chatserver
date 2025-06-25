@@ -1,6 +1,8 @@
 package configs
 
 import (
+	"errors"
+	"log/slog"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -23,7 +25,13 @@ type AppConfigs struct {
 var config AppConfigs
 
 func New() *AppConfigs {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		var pathErr *os.PathError
+		if errors.As(err, &pathErr) {
+			slog.Warn("Failed to load .env")
+		}
+	}
 	config = AppConfigs{
 		Port:        os.Getenv("PORT"),
 		DatabaseURL: os.Getenv("DATABASE_URL"),
