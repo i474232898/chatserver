@@ -31,7 +31,7 @@ func GetPool(cfg *configs.AppConfigs) (*gorm.DB, error) {
 			),
 		}), &gorm.Config{})
 		if poolErr != nil {
-			slog.Error("Unable to connect to database", "error", poolErr)
+			slog.Error("Unable to connect to database: " + poolErr.Error())
 			return
 		}
 		initDB(pool) //todo: change to versioned migration

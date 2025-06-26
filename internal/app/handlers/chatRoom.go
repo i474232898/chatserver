@@ -50,7 +50,12 @@ func (handler *ChatRoomHandler) CreateRoom(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newRoom)
+	err = json.NewEncoder(w).Encode(newRoom)
+	if err != nil {
+		slog.Error("Failed to encode room: " + err.Error())
+		http.Error(w, "Failed to encode room", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (handler *ChatRoomHandler) DirectMessage(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +87,12 @@ func (handler *ChatRoomHandler) DirectMessage(w http.ResponseWriter, r *http.Req
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newRoom)
+	err = json.NewEncoder(w).Encode(newRoom)
+	if err != nil {
+		slog.Error("Failed to encode room: " + err.Error())
+		http.Error(w, "Failed to encode room", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (handler *ChatRoomHandler) ListRooms(w http.ResponseWriter, r *http.Request) {
@@ -99,5 +109,10 @@ func (handler *ChatRoomHandler) ListRooms(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Failed to list rooms", http.StatusInternalServerError)
 		return
 	}
-	json.NewEncoder(w).Encode(rooms)
+	err = 	json.NewEncoder(w).Encode(rooms)
+	if err != nil {
+		slog.Error("Failed to encode rooms: " + err.Error())
+		http.Error(w, "Failed to encode rooms", http.StatusInternalServerError)
+		return
+	}
 }
