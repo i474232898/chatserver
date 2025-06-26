@@ -2,10 +2,12 @@ package websocket
 
 import (
 	"context"
+	// "fmt"
 	"log/slog"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/services"
 )
 
@@ -17,13 +19,13 @@ var (
 type Client struct {
 	Hub         *Hub
 	Conn        *websocket.Conn
-	Send        chan []byte
+	Send        chan dto.MessageDTO
 	RoomId      uint64
 	UserId      uint64
 	RoomService services.ChatRoomService
 }
 
-func (c *Client) Write() {
+func (c *Client) Write(lastSentMessageId uint64) {
 	ticker := time.NewTicker(pingWait)
 	defer func() {
 		c.Hub.unregister <- c
@@ -34,12 +36,17 @@ func (c *Client) Write() {
 		ticker.Stop()
 	}()
 
-	msgs, err := c.RoomService.GetMessages(context.Background(), c.RoomId, time.Now())
+	//send all messages that client hasn't seen yet
+	msgs, err := c.RoomService.GetMessages(context.Background(), c.RoomId, uint64(lastSentMessageId))
 	if err != nil {
 		slog.Error("Error getting messages", "error", err.Error())
 	}
 	for _, msg := range msgs {
-		c.Conn.WriteMessage(websocket.TextMessage, []byte(msg.Content))
+		err := c.Conn.WriteMessage(websocket.TextMessage, []byte(msg.Content))
+		if err != nil {
+			slog.Error("Error writing message", "error", err.Error())
+			return
+		}
 	}
 
 	for {
@@ -52,7 +59,7 @@ func (c *Client) Write() {
 				}
 				return
 			}
-			if err := c.Conn.WriteMessage(1, msg); err != nil {
+			if err := c.Conn.WriteMessage(1, []byte(msg.Content)); err != nil {
 				slog.Debug(err.Error())
 				return
 			}
@@ -93,14 +100,15 @@ func (c *Client) Read() {
 			slog.Error("Error reading message", "error", err.Error())
 			break
 		}
+		//todo: should new context be created for every message save?
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-		_, err = c.RoomService.SaveMessage(ctx, c.RoomId, c.UserId, string(message))
+		msgDto, err := c.RoomService.SaveMessage(ctx, c.RoomId, c.UserId, string(message))
 		cancel()
 		if err != nil {
 			slog.Error("Error saving message", "error", err.Error())
 			continue
 		}
 
-		c.Hub.broadcast <- message
+		c.Hub.broadcast <- *msgDto
 	}
 }

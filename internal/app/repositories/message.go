@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"time"
 
 	"github.com/i474232898/chatserver/internal/app/repositories/models"
 	"gorm.io/gorm"
@@ -14,7 +13,7 @@ type messageRepository struct {
 
 type MessageRepository interface {
 	Create(ctx context.Context, msg *models.ChatMessage) (models.ChatMessage, error)
-	GetMessages(ctx context.Context, roomId uint64, since time.Time) ([]models.ChatMessage, error)
+	GetMessages(ctx context.Context, roomId, lastMessageId uint64) ([]models.ChatMessage, error)
 }
 
 func NewMessageRepository(db *gorm.DB) MessageRepository {
@@ -29,9 +28,18 @@ func (r messageRepository) Create(ctx context.Context, msg *models.ChatMessage) 
 	return *msg, nil
 }
 
-func (r messageRepository) GetMessages(ctx context.Context, roomId uint64, since time.Time) ([]models.ChatMessage, error) {
+func (r messageRepository) GetMessages(ctx context.Context, roomId, lastSeenMsgId uint64) ([]models.ChatMessage, error) {
 	var msgs []models.ChatMessage
-	result := r.db.WithContext(ctx).Where("room_id = ? AND created_at <= ?", roomId, since).Find(&msgs)
+
+	if lastSeenMsgId == 0 {
+		result := r.db.WithContext(ctx).Where("room_id = ?", roomId).Find(&msgs)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+		return msgs, nil
+	}
+
+	result := r.db.WithContext(ctx).Where("room_id = ? AND id > (?)", roomId, lastSeenMsgId).Order("id asc").Find(&msgs)
 	if result.Error != nil {
 		return nil, result.Error
 	}

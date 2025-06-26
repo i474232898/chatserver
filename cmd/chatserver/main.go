@@ -8,6 +8,7 @@ import (
 
 func main() {
 	cfg := configs.New()
+
 	_, err := repositories.GetPool(cfg)
 	if err != nil {
 		panic("Can't connect to db")

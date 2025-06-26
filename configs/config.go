@@ -1,6 +1,8 @@
 package configs
 
 import (
+	"errors"
+	"log/slog"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -25,7 +27,10 @@ var config AppConfigs
 func New() *AppConfigs {
 	err := godotenv.Load()
 	if err != nil {
-		panic("incomplete environment vars")
+		var pathErr *os.PathError
+		if errors.As(err, &pathErr) {
+			slog.Warn("Failed to load .env")
+		}
 	}
 	config = AppConfigs{
 		Port:        os.Getenv("PORT"),
@@ -39,6 +44,5 @@ func New() *AppConfigs {
 			Port:     os.Getenv("DB_PORT"),
 		},
 	}
-
 	return &config
 }

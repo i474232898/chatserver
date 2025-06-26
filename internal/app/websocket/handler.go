@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"github.com/i474232898/chatserver/internal/app/common"
+	"github.com/i474232898/chatserver/internal/app/dto"
 	"github.com/i474232898/chatserver/internal/app/services"
 )
 
@@ -28,6 +29,11 @@ func NewWebsocketHandler(serv services.ChatRoomService) *WebsocketHandler {
 func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
 	roomId, err := strconv.Atoi(chi.URLParam(r, "roomID"))
+	if err != nil {
+		slog.Error(err.Error())
+		return
+	}
+	lastSentMessageId, err := strconv.Atoi(chi.URLParam(r, "lastSeenMsgID"))
 	if err != nil {
 		slog.Error(err.Error())
 		return
@@ -54,12 +60,12 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 	client := Client{
 		Hub:         hub,
 		Conn:        conn,
-		Send:        make(chan []byte, 256),
+		Send:        make(chan dto.MessageDTO, 256),
 		RoomId:      uint64(roomId),
 		UserId:      uint64(claims.ID),
 		RoomService: h.roomService,
 	}
-	go client.Write()
+	go client.Write(uint64(lastSentMessageId))
 	hub.register <- &client
 	go client.Read()
 }
