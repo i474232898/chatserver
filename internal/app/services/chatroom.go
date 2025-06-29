@@ -34,7 +34,7 @@ func NewChatRoomService(roomRepo repositories.RoomRepository,
 
 
 func (s *chatRoomService) SaveMessage(ctx context.Context, roomId, userId uint64, content string) (*dto.MessageDTO, error) {
-	msg := &models.ChatMessage{
+	msg := models.ChatMessage{
 		RoomId:  roomId,
 		UserId:  userId,
 		Content: content,
@@ -86,7 +86,7 @@ func (s *chatRoomService) Create(ctx context.Context, room *dto.CreateRoomDTO) (
 		roomName = s.generateDirectRoomName(users)
 	}
 
-	newRoom := &models.Room{
+	newRoom := models.Room{
 		Name:     roomName,
 		AdminID:  room.AdminID,
 		Users:    users,

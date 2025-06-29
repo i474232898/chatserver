@@ -9,8 +9,8 @@ import (
 )
 
 type RoomRepository interface {
-	Create(ctx context.Context, room *models.Room) (*models.Room, error)
-	CreateDirectRoom(ctx context.Context, room *models.Room) (*models.Room, error)
+	Create(ctx context.Context, room models.Room) (*models.Room, error)
+	CreateDirectRoom(ctx context.Context, room models.Room) (*models.Room, error)
 	GetByName(ctx context.Context, name string) (*models.Room, error)
 	RoomsList(ctx context.Context, userId uint64) ([]models.Room, error)
 	IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool
@@ -24,16 +24,16 @@ func NewRoomRepository(db *gorm.DB) RoomRepository {
 	return &roomRepository{db: db}
 }
 
-func (r *roomRepository) Create(ctx context.Context, room *models.Room) (*models.Room, error) {
+func (r *roomRepository) Create(ctx context.Context, room models.Room) (*models.Room, error) {
 	result := r.db.Create(room)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to create room in database: %w", result.Error)
 	}
 
-	return room, nil
+	return &room, nil
 }
 
-func (r *roomRepository) CreateDirectRoom(ctx context.Context, room *models.Room) (*models.Room, error) {
+func (r *roomRepository) CreateDirectRoom(ctx context.Context, room models.Room) (*models.Room, error) {
 	//check if room with same name exists
 	var dbRoom models.Room
 	if err := r.db.WithContext(ctx).Model(&models.Room{}).Where("name = ?", room.Name).First(&dbRoom).Error; err != nil {
