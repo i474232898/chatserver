@@ -4,7 +4,6 @@ import (
 	"context"
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/i474232898/chatserver/api/types"
 	"github.com/i474232898/chatserver/internal/app/dto"
@@ -17,21 +16,35 @@ type ChatRoomService interface {
 	Create(ctx context.Context, room *dto.CreateRoomDTO) (*dto.RoomDTO, error)
 	GetByName(ctx context.Context, name string) (*dto.RoomDTO, error)
 	ListRooms(ctx context.Context, userId uint64) (types.RoomsListResponse, error)
-	IsUserInRoom(ctx context.Context, userId uint64, roomId uint64) bool
-	SaveMessage(ctx context.Context, roomId uint64, userId uint64, content string) (*dto.MessageDTO, error)
-	GetMessages(ctx context.Context, roomId uint64, since time.Time) ([]dto.MessageDTO, error)
+	IsUserInRoom(ctx context.Context, userId, roomId uint64) bool
+	SaveMessage(ctx context.Context, roomId, userId uint64, content string) (*dto.MessageDTO, error)
+	GetMessages(ctx context.Context, roomId, lastMessageId uint64) ([]dto.MessageDTO, error)
+	UpdateUserRoomOffset(ctx context.Context, roomId, userId, lastReadMessage uint64) error
+	GetUserRoomOffset(ctx context.Context, roomId, userId uint64) (uint64, error)
 }
 
 type chatRoomService struct {
-	roomRepo    repositories.RoomRepository
-	messageRepo repositories.MessageRepository
+	roomRepo           repositories.RoomRepository
+	messageRepo        repositories.MessageRepository
+	userRoomOffsetRepo repositories.UserRoomOffsetRepository
 }
 
-func NewChatRoomService(roomRepo repositories.RoomRepository, messageRepo repositories.MessageRepository) ChatRoomService {
-	return &chatRoomService{roomRepo: roomRepo, messageRepo: messageRepo}
+func NewChatRoomService(roomRepo repositories.RoomRepository,
+	messageRepo repositories.MessageRepository,
+	userRoomOffsetRepo repositories.UserRoomOffsetRepository) ChatRoomService {
+	return &chatRoomService{roomRepo: roomRepo,
+		messageRepo: messageRepo, userRoomOffsetRepo: userRoomOffsetRepo}
 }
 
-func (s *chatRoomService) SaveMessage(ctx context.Context, roomId uint64, userId uint64, content string) (*dto.MessageDTO, error) {
+func (s *chatRoomService) UpdateUserRoomOffset(ctx context.Context, roomId, userId, lastReadMessage uint64) error {
+	return s.userRoomOffsetRepo.UpdateUserRoomOffset(ctx, roomId, userId, lastReadMessage)
+}
+
+func (s *chatRoomService) GetUserRoomOffset(ctx context.Context, roomId, userId uint64) (uint64, error) {
+	return s.userRoomOffsetRepo.GetUserRoomOffset(ctx, roomId, userId)
+}
+
+func (s *chatRoomService) SaveMessage(ctx context.Context, roomId, userId uint64, content string) (*dto.MessageDTO, error) {
 	msg := &models.ChatMessage{
 		RoomId:  roomId,
 		UserId:  userId,
@@ -52,8 +65,8 @@ func (s *chatRoomService) SaveMessage(ctx context.Context, roomId uint64, userId
 	}, nil
 }
 
-func (s *chatRoomService) GetMessages(ctx context.Context, roomId uint64, since time.Time) ([]dto.MessageDTO, error) {
-	msgs, err := s.messageRepo.GetMessages(ctx, roomId, since)
+func (s *chatRoomService) GetMessages(ctx context.Context, roomId, lastMessageId uint64) ([]dto.MessageDTO, error) {
+	msgs, err := s.messageRepo.GetMessages(ctx, roomId, lastMessageId)
 	if err != nil {
 		return nil, err
 	}
