@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -14,5 +15,10 @@ func HandleValidationErrors(w http.ResponseWriter, err error) {
 		errors = append(errors, types.ValidationError{Message: v.Error(), Field: v.Field()})
 	}
 	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(errors)
+	err = json.NewEncoder(w).Encode(errors)
+	if err != nil {
+		slog.Error("Failed to encode errors: " + err.Error())
+		http.Error(w, "Failed to encode errors", http.StatusInternalServerError)
+		return
+	}
 }

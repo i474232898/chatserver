@@ -49,7 +49,12 @@ func (handler authHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(user)
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		slog.Error("Failed to encode user: " + err.Error())
+		http.Error(w, "Failed to encode user", http.StatusInternalServerError)
+		return
+	}
 }
 
 func (handler authHandler) Signin(w http.ResponseWriter, r *http.Request) {
@@ -78,5 +83,10 @@ func (handler authHandler) Signin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		slog.Error("Failed to encode user: " + err.Error())
+		http.Error(w, "Failed to encode user", http.StatusInternalServerError)
+		return
+	}
 }

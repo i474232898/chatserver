@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"context"
-	// "fmt"
 	"log/slog"
 	"time"
 
@@ -25,40 +24,29 @@ type Client struct {
 	RoomService services.ChatRoomService
 }
 
-func (c *Client) Write() {
+//send messages to client
+func (c *Client) Write(lastSentMessageId uint64) {
 	ticker := time.NewTicker(pingWait)
-	lastSentMessageId, err := c.RoomService.GetUserRoomOffset(context.Background(), c.RoomId, c.UserId)
-	if err != nil {
-		slog.Error("Error getting user room offset", "error", err.Error())
-	}
-	// fmt.Println(lastSentMessageId, c.RoomId, c.UserId, "<<lastSentMessageId")
 	defer func() {
 		c.Hub.unregister <- c
 		err := c.Conn.Close()
 		if err != nil {
-			slog.Error("Error closing connection", "error", err)
+			slog.Error("Error closing connection: " + err.Error())
 		}
 		ticker.Stop()
-
-		err = c.RoomService.UpdateUserRoomOffset(context.Background(), c.RoomId, c.UserId, uint64(lastSentMessageId))
-		if err != nil {
-			slog.Error("Error updating user room offset", "error", err.Error())
-		}
 	}()
 
 	//send all messages that client hasn't seen yet
 	msgs, err := c.RoomService.GetMessages(context.Background(), c.RoomId, uint64(lastSentMessageId))
 	if err != nil {
-		slog.Error("Error getting messages", "error", err.Error())
+		slog.Error("Error getting messages: " + err.Error())
 	}
 	for _, msg := range msgs {
 		err := c.Conn.WriteMessage(websocket.TextMessage, []byte(msg.Content))
 		if err != nil {
-			slog.Error("Error writing message", "error", err.Error())
+			slog.Error("Error writing message: " + err.Error())
 			return
 		}
-		lastSentMessageId = uint64(msg.ID)
-		// fmt.Println(lastSentMessageId, "222")
 	}
 
 	for {
@@ -67,7 +55,7 @@ func (c *Client) Write() {
 			if !ok {
 				err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{}) //send close frame
 				if err != nil {
-					slog.Error("Error writing close message", "error", err)
+					slog.Error("Error writing close message: " + err.Error())
 				}
 				return
 			}
@@ -75,8 +63,6 @@ func (c *Client) Write() {
 				slog.Debug(err.Error())
 				return
 			}
-			lastSentMessageId = uint64(msg.ID)
-			// fmt.Println(lastSentMessageId, "<<<")
 		case <-ticker.C:
 			err := c.Conn.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
@@ -87,23 +73,24 @@ func (c *Client) Write() {
 	}
 }
 
+//receive messages from client
 func (c *Client) Read() {
 	defer func() {
 		c.Hub.unregister <- c
 		err := c.Conn.Close()
 		if err != nil {
-			slog.Error("Error closing connection", "error", err)
+			slog.Error("Error closing connection: " + err.Error())
 		}
 	}()
 
 	err := c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 	if err != nil {
-		slog.Error("Error setting read deadline", "error", err.Error())
+		slog.Error("Error setting read deadline: " + err.Error())
 	}
 	c.Conn.SetPongHandler(func(string) error {
 		err := c.Conn.SetReadDeadline(time.Now().Add(pongWait))
 		if err != nil {
-			slog.Error("Error setting read deadline", "error", err.Error())
+			slog.Error("Error setting read deadline: " + err.Error())
 		}
 		return nil
 	})
@@ -111,7 +98,7 @@ func (c *Client) Read() {
 	for {
 		_, message, err := c.Conn.ReadMessage()
 		if err != nil {
-			slog.Error("Error reading message", "error", err.Error())
+			slog.Error("Error reading message: " + err.Error())
 			break
 		}
 		//todo: should new context be created for every message save?
@@ -119,7 +106,7 @@ func (c *Client) Read() {
 		msgDto, err := c.RoomService.SaveMessage(ctx, c.RoomId, c.UserId, string(message))
 		cancel()
 		if err != nil {
-			slog.Error("Error saving message", "error", err.Error())
+			slog.Error("Error saving message: " + err.Error())
 			continue
 		}
 

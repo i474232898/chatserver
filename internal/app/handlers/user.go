@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/i474232898/chatserver/internal/app/common"
@@ -34,5 +35,10 @@ func (handler *userHandler) Me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		slog.Error("Failed to encode user: " + err.Error())
+		http.Error(w, "Failed to encode user", http.StatusInternalServerError)
+		return
+	}
 }
