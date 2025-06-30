@@ -15,28 +15,31 @@ import (
 	"github.com/i474232898/chatserver/internal/app/services"
 	"github.com/i474232898/chatserver/internal/app/websocket"
 	"github.com/swaggest/swgui/v5emb"
+	"gorm.io/gorm"
 )
 
 type Server struct {
 	router *chi.Mux
+	cfg    *configs.AppConfigs
+	db     *gorm.DB
 }
 
 func NewServer() Server {
-	return Server{router: chi.NewRouter()}
-}
-
-func (s *Server) setupRoutes() {
 	cfg := configs.New()
 	db, _ := repositories.GetPool(cfg)
 
-	userRepository := repositories.NewUserRepository(db)
+	return Server{router: chi.NewRouter(), cfg: cfg, db: db}
+}
+
+func (s *Server) setupRoutes() {
+	userRepository := repositories.NewUserRepository(s.db)
 	authService := services.NewAuthService(userRepository)
 	authHandler := handlers.NewAuthHandler(authService)
 	userService := services.NewUserService(userRepository)
 	userHandler := handlers.NewUserHandler(userService)
 
-	roomRepo := repositories.NewRoomRepository(db)
-	messageRepo := repositories.NewMessageRepository(db)
+	roomRepo := repositories.NewRoomRepository(s.db)
+	messageRepo := repositories.NewMessageRepository(s.db)
 	roomServ := services.NewChatRoomService(roomRepo, messageRepo)
 	roomHadler := handlers.NewChatRoomHandler(roomServ)
 

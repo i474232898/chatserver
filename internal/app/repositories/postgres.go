@@ -43,6 +43,6 @@ func GetPool(cfg *configs.AppConfigs) (*gorm.DB, error) {
 func initDB(db *gorm.DB) {
 	err := db.AutoMigrate(&models.User{}, &models.Room{}, &models.ChatMessage{}, &models.UserRoomOffset{})
 	if err != nil {
-		slog.Error("Error migrating database", "error", err.Error())
+		slog.Error("Error migrating database: " + err.Error())
 	}
 }

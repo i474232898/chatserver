@@ -31,29 +31,37 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 	roomId, err := strconv.Atoi(chi.URLParam(r, "roomID"))
 	if err != nil {
 		slog.Error(err.Error())
+		http.Error(w, "Invalid room ID", http.StatusBadRequest)
 		return
 	}
 	lastSentMessageId, err := strconv.Atoi(chi.URLParam(r, "lastSeenMsgID"))
 	if err != nil {
 		slog.Error(err.Error())
+		http.Error(w, "Invalid last seen message ID", http.StatusBadRequest)
 		return
 	}
 
 	claims, err := common.ParseJWT(token, []byte("secret"))
 	if err != nil {
 		slog.Error(err.Error())
+		http.Error(w, "Invalid token", http.StatusUnauthorized)
 		return
 	}
 
 	invited := h.roomService.IsUserInRoom(r.Context(), uint64(claims.ID), uint64(roomId))
 	if !invited {
-		slog.Info("Not invited")
+		slog.Warn("WebSocket access denied",
+			"user_id", claims.ID,
+			"room_id", roomId,
+			"reason", "user_not_in_room")
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		slog.Error(err.Error())
+		http.Error(w, "Failed to upgrade to WebSocket", http.StatusInternalServerError)
 		return
 	}
 	hub := hm.GetHub(roomId)

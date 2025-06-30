@@ -70,7 +70,6 @@ func TestAuthService_Signin(t *testing.T) {
 					t.Error("Expected token to be generated")
 				}
 
-				// Verify token is valid JWT
 				token, err := jwt.ParseWithClaims(response.Token, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 					return []byte("secret"), nil
 				})

@@ -22,8 +22,8 @@ type ChatRoomService interface {
 }
 
 type chatRoomService struct {
-	roomRepo           repositories.RoomRepository
-	messageRepo        repositories.MessageRepository
+	roomRepo    repositories.RoomRepository
+	messageRepo repositories.MessageRepository
 }
 
 func NewChatRoomService(roomRepo repositories.RoomRepository,
@@ -31,7 +31,6 @@ func NewChatRoomService(roomRepo repositories.RoomRepository,
 	return &chatRoomService{roomRepo: roomRepo,
 		messageRepo: messageRepo}
 }
-
 
 func (s *chatRoomService) SaveMessage(ctx context.Context, roomId, userId uint64, content string) (*dto.MessageDTO, error) {
 	msg := models.ChatMessage{
@@ -146,6 +145,7 @@ func (s *chatRoomService) GetByName(ctx context.Context, name string) (*dto.Room
 	if err != nil {
 		return nil, err
 	}
+
 	return &dto.RoomDTO{
 		RoomName:  model.Name,
 		RoomId:    model.ID,
