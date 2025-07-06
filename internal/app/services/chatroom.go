@@ -19,33 +19,21 @@ type ChatRoomService interface {
 	IsUserInRoom(ctx context.Context, userId, roomId uint64) bool
 	SaveMessage(ctx context.Context, roomId, userId uint64, content string) (*dto.MessageDTO, error)
 	GetMessages(ctx context.Context, roomId, lastMessageId uint64) ([]dto.MessageDTO, error)
-	UpdateUserRoomOffset(ctx context.Context, roomId, userId, lastReadMessage uint64) error
-	GetUserRoomOffset(ctx context.Context, roomId, userId uint64) (uint64, error)
 }
 
 type chatRoomService struct {
-	roomRepo           repositories.RoomRepository
-	messageRepo        repositories.MessageRepository
-	userRoomOffsetRepo repositories.UserRoomOffsetRepository
+	roomRepo    repositories.RoomRepository
+	messageRepo repositories.MessageRepository
 }
 
 func NewChatRoomService(roomRepo repositories.RoomRepository,
-	messageRepo repositories.MessageRepository,
-	userRoomOffsetRepo repositories.UserRoomOffsetRepository) ChatRoomService {
+	messageRepo repositories.MessageRepository) ChatRoomService {
 	return &chatRoomService{roomRepo: roomRepo,
-		messageRepo: messageRepo, userRoomOffsetRepo: userRoomOffsetRepo}
-}
-
-func (s *chatRoomService) UpdateUserRoomOffset(ctx context.Context, roomId, userId, lastReadMessage uint64) error {
-	return s.userRoomOffsetRepo.UpdateUserRoomOffset(ctx, roomId, userId, lastReadMessage)
-}
-
-func (s *chatRoomService) GetUserRoomOffset(ctx context.Context, roomId, userId uint64) (uint64, error) {
-	return s.userRoomOffsetRepo.GetUserRoomOffset(ctx, roomId, userId)
+		messageRepo: messageRepo}
 }
 
 func (s *chatRoomService) SaveMessage(ctx context.Context, roomId, userId uint64, content string) (*dto.MessageDTO, error) {
-	msg := &models.ChatMessage{
+	msg := models.ChatMessage{
 		RoomId:  roomId,
 		UserId:  userId,
 		Content: content,
@@ -97,7 +85,7 @@ func (s *chatRoomService) Create(ctx context.Context, room *dto.CreateRoomDTO) (
 		roomName = s.generateDirectRoomName(users)
 	}
 
-	newRoom := &models.Room{
+	newRoom := models.Room{
 		Name:     roomName,
 		AdminID:  room.AdminID,
 		Users:    users,
@@ -157,6 +145,7 @@ func (s *chatRoomService) GetByName(ctx context.Context, name string) (*dto.Room
 	if err != nil {
 		return nil, err
 	}
+
 	return &dto.RoomDTO{
 		RoomName:  model.Name,
 		RoomId:    model.ID,
