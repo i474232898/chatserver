@@ -39,7 +39,7 @@ func (serv *authService) Signup(ctx context.Context, user *types.SignupRequest) 
 	newUser, err := serv.userRepository.Create(ctx, &models.User{Email: string(user.Email), Password: hashedPassword})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create user. %w", err)
+		return nil, fmt.Errorf("Unable to create user. %w", err)
 	}
 
 	return &dto.SignupResponse{Email: newUser.Email, ID: newUser.ID}, nil

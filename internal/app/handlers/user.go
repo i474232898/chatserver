@@ -1,11 +1,10 @@
 package handlers
 
 import (
-	"encoding/json"
-	"log/slog"
 	"net/http"
 
 	"github.com/i474232898/chatserver/internal/app/common"
+	handlercommon "github.com/i474232898/chatserver/internal/app/handlers/common"
 	"github.com/i474232898/chatserver/internal/app/services"
 )
 
@@ -30,15 +29,9 @@ func (handler *userHandler) Me(w http.ResponseWriter, r *http.Request) {
 
 	user, err := handler.userService.Me(r.Context(), int64(claims.ID))
 	if err != nil {
-		http.Error(w, "Failed to get user info", http.StatusInternalServerError)
+		http.Error(w, "Unable to get user info", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		slog.Error("Failed to encode user: " + err.Error())
-		http.Error(w, "Failed to encode user", http.StatusInternalServerError)
-		return
-	}
+	handlercommon.EncodeResponse(w, user)
 }

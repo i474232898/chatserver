@@ -86,7 +86,7 @@ func TestAuthService_Signin(t *testing.T) {
 					t.Errorf("Expected user ID 1, got %d", claims.ID)
 				}
 
-				if claims.ExpiresAt.Time.Before(time.Now()) {
+				if claims.ExpiresAt.Before(time.Now()) {
 					t.Error("Token should not be expired")
 				}
 			},
