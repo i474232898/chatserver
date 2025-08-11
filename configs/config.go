@@ -29,7 +29,7 @@ func New() *AppConfigs {
 	if err != nil {
 		var pathErr *os.PathError
 		if errors.As(err, &pathErr) {
-			slog.Warn("Failed to load .env")
+			slog.Warn("Unable to load .env")
 		}
 	}
 	config = AppConfigs{

@@ -103,6 +103,6 @@ func (s *Server) Start(port string) {
 
 	slog.Info("Starting server on :" + port)
 	if err := http.ListenAndServe(":"+port, s.router); err != nil {
-		slog.Error("Server failed to start: " + err.Error())
+		slog.Error("Server Unable to start: " + err.Error())
 	}
 }

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -44,17 +43,12 @@ func (handler authHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	user, err := handler.authService.Signup(ctx, &req)
 	if err != nil {
 		slog.Error(err.Error())
-		http.Error(w, "Failed to create user", http.StatusInternalServerError)
+		http.Error(w, "Unable to create user", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		slog.Error("Failed to encode user: " + err.Error())
-		http.Error(w, "Failed to encode user", http.StatusInternalServerError)
-		return
-	}
+	common.EncodeResponse(w, user)
 }
 
 func (handler authHandler) Signin(w http.ResponseWriter, r *http.Request) {
@@ -70,7 +64,7 @@ func (handler authHandler) Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := r.Context()
 	user, err := handler.authService.Signin(ctx, &req)
 	if err != nil {
 		if errors.Is(err, app.ErrUserNotFound) || errors.Is(err, app.ErrInvalidCredentials) {
@@ -78,15 +72,10 @@ func (handler authHandler) Signin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		slog.Error(err.Error())
-		http.Error(w, "Failed to signin", http.StatusInternalServerError)
+		http.Error(w, "Unable to signin", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		slog.Error("Failed to encode user: " + err.Error())
-		http.Error(w, "Failed to encode user", http.StatusInternalServerError)
-		return
-	}
+	common.EncodeResponse(w, user)
 }

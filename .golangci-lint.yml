@@ -1,0 +1,44 @@
+run:
+  timeout: 1m
+  modules-download-mode: readonly
+  go: "1.24"
+  # build-tags:
+  #   - "!dev"
+  #   - "!test"
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    ignore: "fmt:.*"
+  
+  unused:
+    check-exported: false
+  
+  shadow:
+    strict: true
+  
+  cyclop:
+    max-complexity: 15
+    package-average: 10.0
+    max-functions: 5
+  
+  funlen:
+    lines: 100
+    statements: 50
+  
+  lll:
+    line-length: 50
+    tab-width: 1
+  
+  # SQL query analysis
+  sqlclosecheck:
+    packages:
+      - "database/sql"
+      - "github.com/jmoiron/sqlx"
+      - "gorm.io/gorm"
+
+  gosec:
+    excludes:
+      - G404 # Use of weak random number generator
+      - G601 # Implicit memory aliasing in for loop

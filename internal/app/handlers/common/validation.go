@@ -17,8 +17,8 @@ func HandleValidationErrors(w http.ResponseWriter, err error) {
 	w.WriteHeader(http.StatusBadRequest)
 	err = json.NewEncoder(w).Encode(errors)
 	if err != nil {
-		slog.Error("Failed to encode errors: " + err.Error())
-		http.Error(w, "Failed to encode errors", http.StatusInternalServerError)
+		slog.Error("Unable to encode errors: " + err.Error())
+		http.Error(w, "Unable to encode errors", http.StatusInternalServerError)
 		return
 	}
 }

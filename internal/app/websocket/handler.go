@@ -34,6 +34,7 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 		http.Error(w, "Invalid room ID", http.StatusBadRequest)
 		return
 	}
+
 	lastSentMessageId, err := strconv.Atoi(chi.URLParam(r, "lastSeenMsgID"))
 	if err != nil {
 		slog.Error(err.Error())
@@ -61,7 +62,7 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		slog.Error(err.Error())
-		http.Error(w, "Failed to upgrade to WebSocket", http.StatusInternalServerError)
+		http.Error(w, "Unable to upgrade to WebSocket", http.StatusInternalServerError)
 		return
 	}
 	hub := hm.GetHub(roomId)
