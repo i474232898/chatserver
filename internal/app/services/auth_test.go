@@ -117,8 +117,8 @@ func TestAuthService_Signin(t *testing.T) {
 				hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("correctpassword"), bcrypt.DefaultCost)
 				mock.users = map[string]*models.User{
 					"test@example.com": {
-						Model: gorm.Model{ID: 1},
-						Email: "test@example.com",
+						Model:    gorm.Model{ID: 1},
+						Email:    "test@example.com",
 						Password: string(hashedPassword),
 					},
 				}

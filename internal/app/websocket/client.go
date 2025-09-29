@@ -24,7 +24,7 @@ type Client struct {
 	RoomService services.ChatRoomService
 }
 
-//send messages to client
+// send messages to client
 func (c *Client) Write(lastSentMessageId uint64) {
 	ticker := time.NewTicker(pingWait)
 	defer func() {
@@ -73,7 +73,7 @@ func (c *Client) Write(lastSentMessageId uint64) {
 	}
 }
 
-//receive messages from client
+// receive messages from client
 func (c *Client) Read() {
 	defer func() {
 		c.Hub.unregister <- c
