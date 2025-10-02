@@ -2,6 +2,7 @@ package configs
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -44,5 +45,8 @@ func New() *AppConfigs {
 			Port:     os.Getenv("DB_PORT"),
 		},
 	}
+	fmt.Println("Environment Variables:")
+	fmt.Println(config)
+
 	return &config
 }
