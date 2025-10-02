@@ -86,7 +86,7 @@ func TestAuthService_Signin(t *testing.T) {
 					t.Errorf("Expected user ID 1, got %d", claims.ID)
 				}
 
-				if claims.ExpiresAt.Time.Before(time.Now()) {
+				if claims.ExpiresAt.Before(time.Now()) {
 					t.Error("Token should not be expired")
 				}
 			},
@@ -117,8 +117,8 @@ func TestAuthService_Signin(t *testing.T) {
 				hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("correctpassword"), bcrypt.DefaultCost)
 				mock.users = map[string]*models.User{
 					"test@example.com": {
-						Model: gorm.Model{ID: 1},
-						Email: "test@example.com",
+						Model:    gorm.Model{ID: 1},
+						Email:    "test@example.com",
 						Password: string(hashedPassword),
 					},
 				}
