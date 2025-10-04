@@ -8,6 +8,24 @@ servers:
   - url: http://localhost:8080
 
 paths:
+  /healthcheck:
+    get:
+      summary: Healthcheck
+      description: Check if the server is running
+      operationId: healthcheck
+      tags:
+        - Healthcheck
+      responses:
+        '200':
+          description: Server is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
   /auth/signup:
     post:
       summary: Register a new user

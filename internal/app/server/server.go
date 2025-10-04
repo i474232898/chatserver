@@ -37,6 +37,7 @@ func (s *Server) setupRoutes() {
 	authHandler := handlers.NewAuthHandler(authService)
 	userService := services.NewUserService(userRepository)
 	userHandler := handlers.NewUserHandler(userService)
+	healthcheckHandler := handlers.NewHealthcheckHandler()
 
 	roomRepo := repositories.NewRoomRepository(s.db)
 	messageRepo := repositories.NewMessageRepository(s.db)
@@ -45,6 +46,7 @@ func (s *Server) setupRoutes() {
 
 	ws := websocket.NewWebsocketHandler(roomServ)
 
+	s.router.Get("/healthcheck", healthcheckHandler.Healthcheck)
 	s.router.Route("/auth", func(r chi.Router) {
 		r.Post("/signup", authHandler.Signup)
 		r.Post("/signin", authHandler.Signin)
