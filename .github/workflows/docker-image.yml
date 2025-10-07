@@ -7,7 +7,6 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build:
     name: Build and Push to ECR
     runs-on: ubuntu-latest
@@ -44,4 +43,93 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+  # Release to minikube
+  e2e-minikube:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    # - name: Release to minikube
+    #   run: |
+    #     minikube image load $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    - name: Checkout k8s-playground (charts)
+      uses: actions/checkout@v4
+      with:
+        repository: i474232898/k8s-playground
+        path: k8s-playground
+    - name: Start Minikube
+      uses: medyagh/setup-minikube@latest
+      with:
+        addons: ingress
+    - name: Install Helm
+      uses: azure/setup-helm@v4.3.0
+      with:
+        version: latest
+
+    - name: Configure AWS credentials (to mint ECR token)
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-southeast-2
+    - name: Create/Update ECR imagePullSecret in cluster
+      env:
+        NAMESPACE: default
+        ECR_REGISTRY: ${{ needs.build.outputs.image_registry }}
+        AWS_REGION: ap-southeast-2
+      run: |
+        set -euxo pipefail
+        kubectl get ns "$NAMESPACE" >/dev/null 2>&1 || kubectl create ns "$NAMESPACE"
+        PW="$(aws ecr get-login-password --region "$AWS_REGION")"
+        kubectl -n "$NAMESPACE" create secret docker-registry ecr-regcred \
+          --docker-server="$ECR_REGISTRY" \
+          --docker-username=AWS \
+          --docker-password="$PW" \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Helm upgrade --install chatserver
+      working-directory: k8s-playground
+      env:
+        RELEASE_NAME: chatserver
+        NAMESPACE: default
+        CHART_PATH: chatserver   # TODO: adjust if your chart path differs
+        IMG_REPO: ${{ needs.build.outputs.image_registry }}/${{ needs.build.outputs.image_repository }}
+        IMG_TAG:  ${{ needs.build.outputs.image_tag }}
+      run: |
+        set -euxo pipefail
+        helm upgrade --install "$RELEASE_NAME" "$CHART_PATH" \
+          --namespace "$NAMESPACE" \
+          --set image.repository="$IMG_REPO" \
+          --set image.tag="$IMG_TAG" \
+          --set image.pullPolicy=Always \
+          --set imagePullSecrets[0].name=ecr-regcred
+
+    - name: Wait for rollout
+      env:
+        NAMESPACE: default
+      run: |
+        set -euxo pipefail
+        kubectl -n "$NAMESPACE" rollout status deploy/chatserver-deployment --timeout=180s || {
+          echo "--- Pods ---"; kubectl -n "$NAMESPACE" get pods -o wide || true
+          echo "--- Describe Deployment ---"; kubectl -n "$NAMESPACE" describe deploy/chatserver-deployment || true
+          echo "--- Recent Pod logs ---"; kubectl -n "$NAMESPACE" logs deploy/chatserver-deployment --tail=200 || true
+          exit 1
+        }
+
+    - name: Probe /healthcheck
+      env:
+        NAMESPACE: default
+        SVC_NAME: backend-clusterip   # TODO: your actual Service name
+        LOCAL_PORT: 8080
+        SVC_PORT: 80
+        HEALTH_PATH: /healthcheck     # TODO: adjust if needed
+      run: |
+        set -euxo pipefail
+        kubectl -n "$NAMESPACE" get svc "$SVC_NAME"
+        kubectl -n "$NAMESPACE" port-forward svc/"$SVC_NAME" $LOCAL_PORT:$SVC_PORT >/tmp/pf.log 2>&1 &
+        PF_PID=$!
+        for i in {1..30}; do nc -z 127.0.0.1 $LOCAL_PORT && break || sleep 0.5; done
+        curl -fsS "http://127.0.0.1:$LOCAL_PORT$HEALTH_PATH"
+        kill $PF_PID
+
+    # - prod / dev
     
