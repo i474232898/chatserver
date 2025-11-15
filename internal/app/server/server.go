@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"time"
@@ -22,13 +23,14 @@ type Server struct {
 	router *chi.Mux
 	cfg    *configs.AppConfigs
 	db     *gorm.DB
+	server *http.Server
 }
 
 func NewServer() Server {
 	cfg := configs.New()
 	db, _ := repositories.GetPool(cfg)
 
-	return Server{router: chi.NewRouter(), cfg: cfg, db: db}
+	return Server{chi.NewRouter(), cfg, db, nil}
 }
 
 func (s *Server) setupRoutes() {
@@ -99,12 +101,24 @@ func (s *Server) setupMiddlewares() {
 
 }
 
-func (s *Server) Start(port string) {
+func (s *Server) Start(ctx context.Context, port string) {
 	s.setupMiddlewares()
 	s.setupRoutes()
+	s.server = &http.Server{Addr: ":" + port, Handler: s.router}
 
 	slog.Info("Starting server on :" + port)
-	if err := http.ListenAndServe(":"+port, s.router); err != nil {
-		slog.Error("Server Unable to start: " + err.Error())
+
+	if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		slog.Error("Server error: " + err.Error())
 	}
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	err := s.server.Shutdown(ctx)
+	if err != nil {
+		slog.Error("Server shutdown error: " + err.Error())
+		return err
+	}
+	slog.Info("Server shutdown complete")
+	return err
 }
