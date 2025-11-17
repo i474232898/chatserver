@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"log/slog"
+	"net"
 	"net/http"
 	"time"
 
@@ -104,7 +105,9 @@ func (s *Server) setupMiddlewares() {
 func (s *Server) Start(ctx context.Context, port string) {
 	s.setupMiddlewares()
 	s.setupRoutes()
-	s.server = &http.Server{Addr: ":" + port, Handler: s.router}
+	s.server = &http.Server{Addr: ":" + port, Handler: s.router, BaseContext: func(l net.Listener) context.Context {
+		return ctx
+	}}
 
 	slog.Info("Starting server on :" + port)
 

@@ -35,7 +35,11 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	lastSentMessageId, err := strconv.Atoi(chi.URLParam(r, "lastSeenMsgID"))
+	lastSentMessageIdStr := chi.URLParam(r, "lastSeenMsgID")
+	if lastSentMessageIdStr == "" {
+		lastSentMessageIdStr = "0" // default to 0
+	}
+	lastSentMessageId, err := strconv.Atoi(lastSentMessageIdStr)
 	if err != nil {
 		slog.Error(err.Error())
 		http.Error(w, "Invalid last seen message ID", http.StatusBadRequest)
@@ -74,7 +78,7 @@ func (h *WebsocketHandler) JoinChatRoomHandler(w http.ResponseWriter, r *http.Re
 		UserId:      uint64(claims.ID),
 		RoomService: h.roomService,
 	}
-	go client.Write(uint64(lastSentMessageId))
+	go client.Write(r.Context(), uint64(lastSentMessageId))
 	hub.register <- &client
-	go client.Read()
+	go client.Read(r.Context())
 }

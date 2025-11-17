@@ -25,7 +25,7 @@ func NewRoomRepository(db *gorm.DB) RoomRepository {
 }
 
 func (r *roomRepository) Create(ctx context.Context, room models.Room) (*models.Room, error) {
-	result := r.db.Create(room)
+	result := r.db.Create(&room)
 	if result.Error != nil {
 		return nil, fmt.Errorf("unable to create room in database: %w", result.Error)
 	}

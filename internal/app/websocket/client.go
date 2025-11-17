@@ -25,7 +25,7 @@ type Client struct {
 }
 
 // send messages to client
-func (c *Client) Write(lastSentMessageId uint64) {
+func (c *Client) Write(ctx context.Context, lastSentMessageId uint64) {
 	ticker := time.NewTicker(pingWait)
 	defer func() {
 		c.Hub.unregister <- c
@@ -63,6 +63,13 @@ func (c *Client) Write(lastSentMessageId uint64) {
 				slog.Debug(err.Error())
 				return
 			}
+		case <-ctx.Done():
+			slog.Info("Context done, closing connection")
+			err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+			if err != nil {
+				slog.Error("Error writing close message: " + err.Error())
+			}
+			return
 		case <-ticker.C:
 			err := c.Conn.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
@@ -74,13 +81,17 @@ func (c *Client) Write(lastSentMessageId uint64) {
 }
 
 // receive messages from client
-func (c *Client) Read() {
+func (c *Client) Read(ctx context.Context) {
 	defer func() {
 		c.Hub.unregister <- c
-		err := c.Conn.Close()
-		if err != nil {
+		if err := c.Conn.Close(); err != nil {
 			slog.Error("Error closing connection: " + err.Error())
 		}
+	}()
+
+	go func() {
+		<-ctx.Done()
+		_ = c.Conn.Close()
 	}()
 
 	err := c.Conn.SetReadDeadline(time.Now().Add(pongWait))
