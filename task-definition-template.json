@@ -1,0 +1,48 @@
+{
+  "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT}:role/${ENV}-${IMAGE_NAME}-ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT}:role/${ENV}-${IMAGE_NAME}-ecsServiceTaskRole",
+  "family": "${IMAGE_NAME}-${ENV}",
+  "containerDefinitions": [
+    {
+      "name": "${IMAGE_NAME}",
+      "memoryReservation": 512,
+      "cpu": "128",
+      "image": "${ECR_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}",
+      "portMappings": [
+        {
+          "hostPort": 0,
+          "containerPort": ${CONTAINER_PORT},
+          "protocol": "tcp"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "ENCRYPTION_KEY",
+          "valueFrom": "/chatserver/${ENV}/jwt_secret"
+        },
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "/chatserver/${ENV}/database_url"
+        }
+      ],
+      "environment": [
+        {
+          "name": "PORT",
+          "value": "${CONTAINER_PORT}"
+        },
+        {
+          "name": "ENV",
+          "value": "${ENV}"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/${ENV}/${IMAGE_NAME}",
+          "awslogs-region": "${AWS_DEFAULT_REGION}",
+          "awslogs-stream-prefix": "${IMAGE_NAME}"
+        }
+      }
+    }
+  ]
+}
